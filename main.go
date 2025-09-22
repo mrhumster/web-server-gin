@@ -39,5 +39,5 @@ func main() {
 	router := gin.Default()
 	router.GET("/health", getHealth)
 	router.GET("/albums", getAlbums)
-	router.Run("localhost:8080")
+	router.Run(":8080")
 }

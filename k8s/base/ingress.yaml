@@ -11,7 +11,7 @@ spec:
     - host: go-app.example.com
       http:
         paths:
-          - path: /gin
+          - path: /
             pathType: Prefix
             backend:
               service:
