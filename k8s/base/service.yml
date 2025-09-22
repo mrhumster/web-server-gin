@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: web-serever-gin-service
+spec:
+  selector:
+    app: web-serever-gin
+  ports:
+    - port: 80
+      targetPort: 8080
+  type: ClusterIP

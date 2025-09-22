@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-server-gin
+  labels:
+    app: web-server-gin
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: web-server-gin
+  template:
+    metadata:
+      labels:
+        app: web-server-gin
+    spec:
+      containers:
+        - name: web-server-gin
+          image: xomrkob/web-server-gin:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "100m"
+            limits:
+              memory: "128Mi"
+              cpu: "250m"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
