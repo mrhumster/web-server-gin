@@ -61,7 +61,7 @@ jobs:
     steps:
       - name: Update Kubernetes Deployment
         run: |
-          kubectl -n go-app set image deployment/web-server-gin web-server0gin=xomrkob/web-server-gin:${{ github.sha }}
+          kubectl -n go-app set image deployment/web-server-gin web-server-gin=xomrkob/web-server-gin:${{ github.sha }}
   notify:
     name: Telegram Notification
     runs-on: self-hosted
