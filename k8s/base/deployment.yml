@@ -16,10 +16,18 @@ spec:
     spec:
       containers:
         - name: web-server-gin
-          image: xomrkob/web-server-gin:latest
+          image: xomrkob/web-server-gin:1.1.0
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
+          env:
+            - name: SERVER_ADRESS
+              value: ":8080"
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: go-app-secret
+                  key: DATABASE_URL
           resources:
             requests:
               memory: "64Mi"

@@ -1,0 +1,20 @@
+package service
+
+import (
+	"context"
+
+	"github.com/mrhumster/web-server-gin/models"
+	"github.com/mrhumster/web-server-gin/repository"
+)
+
+type AlbumService struct {
+	repo *repository.AlbumRepository
+}
+
+func NewAlbumService(repo *repository.AlbumRepository) *AlbumService {
+	return &AlbumService{repo: repo}
+}
+
+func (s *AlbumService) CreateAlbum(ctx context.Context, album models.Album) (int, error) {
+	return s.repo.CreateAlbum(ctx, album)
+}
