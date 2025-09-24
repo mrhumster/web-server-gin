@@ -21,6 +21,8 @@ spec:
           ports:
             - containerPort: 8080
           env:
+            - name: DB_HOST
+              value: postgresql.go-app.svc.cluster.local
             - name: SERVER_ADDRESS
               value: ":8080"
             - name: DATABASE_URL
