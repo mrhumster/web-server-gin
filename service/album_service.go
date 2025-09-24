@@ -18,3 +18,7 @@ func NewAlbumService(repo *repository.AlbumRepository) *AlbumService {
 func (s *AlbumService) CreateAlbum(ctx context.Context, album models.Album) (int, error) {
 	return s.repo.CreateAlbum(ctx, album)
 }
+
+func (s *AlbumService) GetAlbumByID(ctx context.Context, id int64) (*models.Album, error) {
+	return s.repo.GetAlbumByID(ctx, id)
+}

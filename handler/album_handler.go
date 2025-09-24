@@ -2,6 +2,7 @@ package handler
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/mrhumster/web-server-gin/models"
@@ -30,4 +31,19 @@ func (h *AlbumHandler) CreateAlbum(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusCreated, gin.H{"id": id})
+}
+
+func (h *AlbumHandler) GetAlbumByID(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := strconv.ParseInt(idStr, 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
+		return
+	}
+	album, err := h.service.GetAlbumByID(c, id)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, &album)
 }

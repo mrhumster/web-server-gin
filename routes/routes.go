@@ -23,6 +23,7 @@ func SetupRoutes(r *gin.Engine, cfg config.Config) *pgxpool.Pool {
 	albumHandler := handler.NewAlbumHandler(albumService)
 
 	r.POST("/albums", albumHandler.CreateAlbum)
+	r.GET("/albums/:id", albumHandler.GetAlbumByID)
 
 	r.GET("/health", func(c *gin.Context) {
 		if err := dbpool.Ping(context.Background()); err != nil {
