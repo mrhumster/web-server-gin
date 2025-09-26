@@ -40,7 +40,7 @@ func (h *AlbumHandler) GetAlbumByID(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
 		return
 	}
-	album, err := h.service.GetAlbumByID(c, id)
+	album, err := h.service.GetAlbumByID(c, uint(id))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return

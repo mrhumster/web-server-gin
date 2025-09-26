@@ -2,41 +2,32 @@ package repository
 
 import (
 	"context"
-	"time"
 
-	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/mrhumster/web-server-gin/models"
+	"gorm.io/gorm"
 )
 
 type AlbumRepository struct {
-	db *pgxpool.Pool
+	db *gorm.DB
 }
 
-func NewAlbumRepository(db *pgxpool.Pool) *AlbumRepository {
+func NewAlbumRepository(db *gorm.DB) *AlbumRepository {
 	return &AlbumRepository{db: db}
 }
 
-func (r *AlbumRepository) CreateAlbum(ctx context.Context, album models.Album) (int, error) {
-	var id int
-	album.CreatedAt = time.Now()
-	album.UpdatedAt = time.Now()
-	query := `INSERT INTO albums (title, artist, price, created_at, updated_at) VALUES ($1, $2, $3, $4, $5) RETURNING id`
-	err := r.db.QueryRow(ctx, query, album.Title, album.Artist, album.Price, album.CreatedAt, album.UpdatedAt).Scan(&id)
-	return id, err
+func (r *AlbumRepository) CreateAlbum(ctx context.Context, album models.Album) (uint, error) {
+	result := r.db.WithContext(ctx).Create(&album)
+	if result.Error != nil {
+		return 0, result.Error
+	}
+	return album.ID, nil
 }
 
-func (r *AlbumRepository) GetAlbumByID(ctx context.Context, id int64) (*models.Album, error) {
-	album := &models.Album{}
-	query := `SELECT title, artist, price, created_at, updated_at FROM albums WHERE ID=$1`
-	err := r.db.QueryRow(ctx, query, id).Scan(
-		&album.Title,
-		&album.Artist,
-		&album.Price,
-		&album.CreatedAt,
-		&album.UpdatedAt)
-	if err != nil {
-		return nil, err
+func (r *AlbumRepository) GetAlbumByID(ctx context.Context, id uint) (*models.Album, error) {
+	var album models.Album
+	result := r.db.WithContext(ctx).First(&album, id)
+	if result.Error != nil {
+		return nil, result.Error
 	}
-	album.ID = id
-	return album, err
+	return &album, nil
 }

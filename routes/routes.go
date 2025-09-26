@@ -1,24 +1,30 @@
 package routes
 
 import (
-	"context"
-	"github.com/gin-gonic/gin"
-	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/mrhumster/web-server-gin/config"
-	"github.com/mrhumster/web-server-gin/handler"
-	"github.com/mrhumster/web-server-gin/repository"
-	"github.com/mrhumster/web-server-gin/service"
 	"log"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
+	"github.com/mrhumster/web-server-gin/config"
+	"github.com/mrhumster/web-server-gin/handler"
+	"github.com/mrhumster/web-server-gin/models"
+	"github.com/mrhumster/web-server-gin/repository"
+	"github.com/mrhumster/web-server-gin/service"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
-func SetupRoutes(r *gin.Engine, cfg config.Config) *pgxpool.Pool {
-	dbpool, err := pgxpool.New(context.Background(), cfg.DatabaseURL)
+func SetupRoutes(r *gin.Engine, cfg config.Config) *gorm.DB {
+	db, err := gorm.Open(postgres.Open(cfg.GetDsn()), &gorm.Config{})
+
 	if err != nil {
-		panic("🔴 Unable to connect to database: " + err.Error())
+		panic("⚠️ GORM not open DB")
+
 	}
 
-	albumRepo := repository.NewAlbumRepository(dbpool)
+	db.AutoMigrate(&models.Album{})
+
+	albumRepo := repository.NewAlbumRepository(db)
 	albumService := service.NewAlbumService(albumRepo)
 	albumHandler := handler.NewAlbumHandler(albumService)
 
@@ -26,7 +32,7 @@ func SetupRoutes(r *gin.Engine, cfg config.Config) *pgxpool.Pool {
 	r.GET("/albums/:id", albumHandler.GetAlbumByID)
 
 	r.GET("/health", func(c *gin.Context) {
-		if err := dbpool.Ping(context.Background()); err != nil {
+		if _, err := db.DB(); err != nil {
 			log.Println("⚠️ PG ERROR: ", err.Error())
 			c.JSON(http.StatusServiceUnavailable, gin.H{"status": "down", "error": err.Error()})
 			return
@@ -34,5 +40,5 @@ func SetupRoutes(r *gin.Engine, cfg config.Config) *pgxpool.Pool {
 		c.JSON(http.StatusOK, gin.H{"status": "up"})
 	})
 
-	return dbpool
+	return db
 }

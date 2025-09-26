@@ -16,20 +16,29 @@ spec:
     spec:
       containers:
         - name: web-server-gin
-          image: xomrkob/web-server-gin:1.1.2
+          image: xomrkob/web-server-gin:1.1.18
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
           env:
+            - name: SERVER_ADDR
+              value: ":8080"
             - name: DB_HOST
               value: postgresql.go-app.svc.cluster.local
-            - name: SERVER_ADDRESS
-              value: ":8080"
-            - name: DATABASE_URL
+            - name: DB_PORT
+              value: "5432"
+            - name: DB_NAME
+              value: "database1"
+            - name: DB_PASS
               valueFrom:
                 secretKeyRef:
                   name: go-app-secret
-                  key: DATABASE_URL
+                  key: DB_PASS
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: go-app-secret
+                  key: DB_USER
           resources:
             requests:
               memory: "64Mi"

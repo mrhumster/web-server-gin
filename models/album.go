@@ -1,12 +1,12 @@
 package models
 
-import "time"
+import (
+	"gorm.io/gorm"
+)
 
 type Album struct {
-	ID        int64     `json:"id"`
-	Title     string    `json:"title"`
-	Artist    string    `json:"artist"`
-	Price     float64   `json:"price"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	gorm.Model
+	Title  string `json:"title"`
+	Artist string `json:"artist"`
+	Price  uint   `json:"price"`
 }
