@@ -22,3 +22,7 @@ func (s *AlbumService) CreateAlbum(ctx context.Context, album models.Album) (uin
 func (s *AlbumService) GetAlbumByID(ctx context.Context, id uint) (*models.Album, error) {
 	return s.repo.GetAlbumByID(ctx, id)
 }
+
+func (s *AlbumService) DeleteAlbumByID(ctx context.Context, id uint) error {
+	return s.repo.DeleteAlbumByID(ctx, id)
+}

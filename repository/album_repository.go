@@ -31,3 +31,12 @@ func (r *AlbumRepository) GetAlbumByID(ctx context.Context, id uint) (*models.Al
 	}
 	return &album, nil
 }
+
+func (r *AlbumRepository) DeleteAlbumByID(ctx context.Context, id uint) error {
+	var album models.Album
+	result := r.db.WithContext(ctx).Delete(&album, id)
+	if result.Error != nil {
+		return result.Error
+	}
+	return nil
+}

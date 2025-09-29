@@ -23,6 +23,7 @@ func SetupRoutes(r *gin.Engine, cfg config.Config) *gorm.DB {
 	}
 
 	db.AutoMigrate(&models.Album{})
+	db.AutoMigrate(&models.User{})
 
 	albumRepo := repository.NewAlbumRepository(db)
 	albumService := service.NewAlbumService(albumRepo)
@@ -30,6 +31,13 @@ func SetupRoutes(r *gin.Engine, cfg config.Config) *gorm.DB {
 
 	r.POST("/albums", albumHandler.CreateAlbum)
 	r.GET("/albums/:id", albumHandler.GetAlbumByID)
+	r.DELETE("/albums/:id", albumHandler.DeleteAlbumByID)
+
+	userRepo := repository.NewUserRepository(db)
+	userService := service.NewUserService(userRepo)
+	userHandler := handler.NewUserHandler(userService)
+
+	r.POST("/users", userHandler.CreateUser)
 
 	r.GET("/health", func(c *gin.Context) {
 		if _, err := db.DB(); err != nil {
