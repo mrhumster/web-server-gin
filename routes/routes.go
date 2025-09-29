@@ -37,7 +37,11 @@ func SetupRoutes(r *gin.Engine, cfg config.Config) *gorm.DB {
 	userService := service.NewUserService(userRepo)
 	userHandler := handler.NewUserHandler(userService)
 
+	r.GET("/users", userHandler.ReadUsers)
 	r.POST("/users", userHandler.CreateUser)
+	r.GET("/users/:id", userHandler.ReadUser)
+	r.POST("/users/:id", userHandler.Update)
+	r.DELETE("/users/:id", userHandler.Delete)
 
 	r.GET("/health", func(c *gin.Context) {
 		if _, err := db.DB(); err != nil {
