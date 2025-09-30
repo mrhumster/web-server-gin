@@ -1,12 +1,12 @@
 package handler
 
 import (
-	"net/http"
-	"strconv"
-
 	"github.com/gin-gonic/gin"
 	"github.com/mrhumster/web-server-gin/models"
 	"github.com/mrhumster/web-server-gin/service"
+	"log"
+	"net/http"
+	"strconv"
 )
 
 type UserHandler struct {
@@ -24,9 +24,25 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 		return
 	}
 
+	if user.Password == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "password can't be empty"})
+		return
+	}
+
 	id, err := h.service.CreateUser(c, user)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		log.Printf("CreateUser error: %v, type: %T", err, err)
+		switch err {
+		case service.ErrUserAlreadyExists:
+			c.JSON(http.StatusConflict, gin.H{
+				"error": "user already exists",
+			})
+
+		default:
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": err.Error(),
+			})
+		}
 		return
 	}
 

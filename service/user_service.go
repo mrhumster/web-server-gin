@@ -2,9 +2,17 @@ package service
 
 import (
 	"context"
+	"errors"
 
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/mrhumster/web-server-gin/models"
 	"github.com/mrhumster/web-server-gin/repository"
+	"gorm.io/gorm"
+)
+
+var (
+	ErrUserAlreadyExists = errors.New("user already exists")
+	ErrUserNotFount      = errors.New("user not found")
 )
 
 type UserService struct {
@@ -16,7 +24,20 @@ func NewUserService(repo *repository.UserRepository) *UserService {
 }
 
 func (s *UserService) CreateUser(ctx context.Context, user models.User) (uint, error) {
-	return s.repo.CreateUser(ctx, user)
+	id, err := s.repo.CreateUser(ctx, user)
+	if err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) {
+			if pgErr.Code == "23505" {
+				return 0, ErrUserAlreadyExists
+			}
+		}
+		if errors.Is(err, gorm.ErrDuplicatedKey) {
+			return 0, ErrUserAlreadyExists
+		}
+		return 0, err
+	}
+	return id, nil
 }
 
 func (s *UserService) ReadUser(ctx context.Context, id uint) (*models.User, error) {
