@@ -5,8 +5,6 @@ import (
 	"os"
 )
 
-// 	dsn := "host=postgresql user=postgres password=Master1234 dbname=database1 port=5432 sslmode=disable TimeZone=Asia/Omsk"
-
 type Database struct {
 	Host     string
 	Port     string
@@ -52,4 +50,29 @@ func (config *Config) GetDsn() string {
 		config.Port,
 		config.SslMode,
 		config.TimeZone)
+}
+
+func getEnv(key, defaultValue string) string {
+	if value := os.Getenv(key); value != "" {
+		return value
+	}
+	return defaultValue
+}
+
+func TestConfig() Config {
+	return Config{
+		Database: Database{
+			Host:     getEnv("TEST_DB_HOST", "localhost"),
+			Port:     getEnv("TEST_DB_PORT", "5432"),
+			User:     getEnv("DB_USER", "postgres"),
+			Password: getEnv("DB_PASS", "Master1234"),
+			Name:     getEnv("TEST_DB_NAME", "test_database1"),
+			SslMode:  "disable",
+			TimeZone: "UTC",
+		},
+		Server: Server{
+			ServerAddr: getEnv("TEST_SERVER_ADDR", ":8080"),
+		},
+	}
+
 }

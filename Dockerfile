@@ -1,6 +1,6 @@
 FROM golang:1.25-alpine AS builder
-ARG VERSION=1.1.27 
-ARG BUILD_DATE=29.09.2025 
+ARG VERSION=1.1.30
+ARG BUILD_DATE=30.09.2025
 
 WORKDIR /app
 COPY go.mod ./ 
@@ -13,13 +13,11 @@ RUN CGO_ENABLED=0 GOOS=linux go build \
   -o server ./cmd/main.go
 
 FROM alpine:3.18
-ARG VERSION=1.1.27
-ARG BUILD_DATE=29.09.2025
+ARG VERSION=1.1.30
+ARG BUILD_DATE=30.09.2025
 LABEL version=$VERSION \
   build-date=$BUILD_DATE \
   maintainer="me@xomrkob.ru"
-# for HTTPS
-# RUN apk --no-cache add ca-certificates
 RUN addgroup -g 1000 appgroup && \
   adduser -D -u 1000 -G appgroup appuser
 WORKDIR /app 
@@ -30,5 +28,4 @@ COPY docker-entrypoint.sh /app/docker-entrypoint.sh
 RUN chmod +x /app/docker-entrypoint.sh
 
 USER appuser
-# ENTRYPOINT ["/app/docker-entrypoint.sh"]
 CMD ["/app/server"]

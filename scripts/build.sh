@@ -1,15 +1,14 @@
 #!/bin/bash
 
 if [ -z "$1" ]; then
-	echo "❔ Please set version. 1.0.1, 1.0.2"
-	exit 1
+  echo "❔ Please set version. 1.0.1, 1.0.2"
+  exit 1
 fi
 
 VER=$1
 
 PROJECTDIR=/home/xomrkob/projects/web-server-gin/
-echo "-------.oooO Ooo.------------"
-echo "docker build..."
+echo "🔨 docker build..."
 docker build \
   --build-arg VERSION=$VER \
   --build-arg BUILD_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ") \
@@ -18,30 +17,28 @@ docker build \
   $PROJECTDIR
 
 if [ $? -eq 0 ]; then
-	echo "🟢 Build success"
+  echo "🟢 Build success"
 else
-	echo "🔴 Build failed. Exited."
-	exit 1
+  echo "🔴 Build failed. Exited."
+  exit 1
 fi
 
-echo "docker push..."
+echo "⬆️docker push..."
 docker push xomrkob/web-server-gin:$VER
 
-
 if [ $? -eq 0 ]; then
-	echo "🟢 Push success"
+  echo "🟢 Push success"
 else
-	echo "🔴 Push to docker hub failed. Exited."
-	exit 1
+  echo "🔴 Push to docker hub failed. Exited."
+  exit 1
 fi
 
-echo "k8s update image..."
+echo "👷🏻‍♂️ k8s update image..."
 kubectl -n go-app set image deployment/web-server-gin web-server-gin=xomrkob/web-server-gin:$VER
 
-
 if [ $? -eq 0 ]; then
-	echo "🟢 Image update  success"
+  echo "🟢 Image update  success"
 else
-	echo "🔴 K8s update failed. Exited."
-	exit 1
+  echo "🔴 K8s update failed. Exited."
+  exit 1
 fi
