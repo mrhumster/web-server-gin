@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/gin-gonic/gin"
-	"github.com/mrhumster/web-server-gin/models"
+	"github.com/mrhumster/web-server-gin/dto/request"
 	"github.com/mrhumster/web-server-gin/repository"
 	"github.com/mrhumster/web-server-gin/service"
 	"github.com/mrhumster/web-server-gin/tests/testutils"
@@ -27,9 +27,10 @@ func setupTest() (*UserHandler, *gorm.DB) {
 }
 
 func createUserRequest(router *gin.Engine, login, password string) *httptest.ResponseRecorder {
-	user := models.User{
+	user := request.UserRequest{
 		Login:    login,
 		Password: password,
+		Email:    fmt.Sprintf("%s@test.local", login),
 	}
 
 	userJSON, _ := json.Marshal(user)
@@ -58,9 +59,10 @@ func TestUserHandler_Success(t *testing.T) {
 	router := gin.Default()
 	router.POST("/users", handler.CreateUser)
 
-	user := models.User{
+	user := request.UserRequest{
 		Login:    "testuser",
 		Password: "testuser",
+		Email:    "testuser@test.local",
 	}
 
 	userJSON, _ := json.Marshal(user)
@@ -103,8 +105,8 @@ func TestUserHandler_EmptyPassword(t *testing.T) {
 
 	var response map[string]any
 	json.Unmarshal(resp1.Body.Bytes(), &response)
-	assert.Contains(t, response, "error")
-	assert.Contains(t, response["error"], "password can't be empty")
+	assert.Contains(t, response, "errors")
+	assert.Equal(t, response["errors"], map[string]interface{}{"Password": "This field is required"})
 }
 
 func TestUserHandler_InvalidDate(t *testing.T) {
@@ -147,7 +149,7 @@ func TestUserHandler_ReadUser_InvalidID(t *testing.T) {
 	assert.Equal(t, http.StatusBadRequest, resp.Code)
 }
 
-func TestUserHandler_UpdateUser_DeleteUser(t *testing.T) {
+func TestUserHandler_DeleteUser(t *testing.T) {
 	handler, db := setupTest()
 	defer db.Exec("DELETE FROM users")
 	router := createRouter(handler)
@@ -170,15 +172,20 @@ func TestUserHandler_UpdateUser_DeleteUser(t *testing.T) {
 func TestUserHandler_ReadUsers(t *testing.T) {
 	page := float64(1)
 	limit := float64(5)
-	total := 10
+	total := 50
 	handler, db := setupTest()
 	defer db.Exec("DELETE FROM users")
 	router := createRouter(handler)
 	for i := range total {
 		createUserRequest(router, fmt.Sprintf("testuser%d", i), "password")
 	}
-	req, _ := http.NewRequest("GET", fmt.Sprintf("/users?page=%.0f&limit=%.0f", page, limit), nil)
+	req, _ := http.NewRequest("GET", "/users", nil)
 	resp := httptest.NewRecorder()
+	router.ServeHTTP(resp, req)
+	var respMap1 map[string]any
+	json.Unmarshal(resp.Body.Bytes(), &respMap1)
+	req, _ = http.NewRequest("GET", fmt.Sprintf("/users?page=%.0f&limit=%.0f", page, limit), nil)
+	resp = httptest.NewRecorder()
 	router.ServeHTTP(resp, req)
 	var respMap map[string]any
 	json.Unmarshal(resp.Body.Bytes(), &respMap)
@@ -205,4 +212,32 @@ func TestUserHandler_ReadUsers_QueryValidate(t *testing.T) {
 	resp = httptest.NewRecorder()
 	router.ServeHTTP(resp, req)
 	assert.Equal(t, http.StatusBadRequest, resp.Code)
+
+	req, _ = http.NewRequest("GET", "/users", nil)
+	resp = httptest.NewRecorder()
+	router.ServeHTTP(resp, req)
+	assert.Equal(t, http.StatusOK, resp.Code)
+}
+
+func TestUserHandler_UserResponseIncludeEmail(t *testing.T) {
+	handler, db := setupTest()
+	defer db.Exec("DELETE FROM users")
+	router := createRouter(handler)
+	resp := createUserRequest(router, "testuser1", "testuser1")
+
+	var respMap map[string]any
+	json.Unmarshal(resp.Body.Bytes(), &respMap)
+
+	req, _ := http.NewRequest("GET", fmt.Sprintf("/users/%.0f", respMap["id"]), nil)
+	resp = httptest.NewRecorder()
+	router.ServeHTTP(resp, req)
+
+	respMap = map[string]any{}
+	json.Unmarshal(resp.Body.Bytes(), &respMap)
+
+	assert.Contains(t, respMap, "email")
+}
+
+func TestUserHandler_EmailIsUniq(t *testing.T) {
+	return
 }
