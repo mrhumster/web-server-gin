@@ -52,6 +52,6 @@ func (s *UserService) DeleteUser(ctx context.Context, id uint) error {
 	return s.repo.DeleteUserByID(ctx, id)
 }
 
-func (s *UserService) ReadUserList(ctx context.Context) ([]models.User, error) {
-	return s.repo.ReadUserList(ctx)
+func (s *UserService) ReadUserList(ctx context.Context, limit, page int64) ([]models.User, int64, error) {
+	return s.repo.ReadUserList(ctx, limit, page)
 }

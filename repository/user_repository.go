@@ -55,11 +55,22 @@ func (r *UserRepository) DeleteUserByID(ctx context.Context, id uint) error {
 	return result.Error
 }
 
-func (r *UserRepository) ReadUserList(ctx context.Context) ([]models.User, error) {
+func (r *UserRepository) ReadUserList(ctx context.Context, l, page int64) ([]models.User, int64, error) {
 	var users []models.User
-	result := r.db.WithContext(ctx).Find(&users)
-	if result.Error != nil {
-		return []models.User{}, result.Error
+	var total int64
+	limit := int(l)
+	offset := int((page - 1) * l)
+	if err := r.db.WithContext(ctx).Model(&models.User{}).Count(&total).Error; err != nil {
+		return nil, 0, err
 	}
-	return users, nil
+
+	result := r.db.WithContext(ctx).
+		Limit(limit).
+		Offset(offset).
+		Order("created_at DESC").
+		Find(&users)
+	if result.Error != nil {
+		return []models.User{}, int64(0), result.Error
+	}
+	return users, total, nil
 }
