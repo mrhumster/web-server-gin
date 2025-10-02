@@ -1,6 +1,10 @@
 package response
 
-import "time"
+import (
+	"time"
+
+	"github.com/mrhumster/web-server-gin/models"
+)
 
 type UserResponse struct {
 	ID        uint      `json:"id"`
@@ -15,4 +19,12 @@ type UsersListReponse struct {
 	Total int64          `json:"total"`
 	Page  int64          `json:"page"`
 	Limit int64          `json:"limit"`
+}
+
+func (u *UserResponse) FillInTheModel(m *models.User) {
+	u.ID = m.ID
+	u.Login = m.Login
+	u.Email = m.Email
+	u.CreatedAt = m.CreatedAt
+	u.UpdatedAt = m.UpdatedAt
 }

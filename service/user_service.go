@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 	"errors"
-	"log"
 
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/mrhumster/web-server-gin/models"
@@ -54,7 +53,5 @@ func (s *UserService) DeleteUser(ctx context.Context, id uint) error {
 }
 
 func (s *UserService) ReadUserList(ctx context.Context, limit, page int64) ([]models.User, int64, error) {
-	log.Printf("🟡  User Service DEBUG: limit: %d; page: %d", limit, page)
-	users, total, err := s.repo.ReadUserList(ctx, limit, page)
-	return users, total, err
+	return s.repo.ReadUserList(ctx, limit, page)
 }

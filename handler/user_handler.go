@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"log"
 	"net/http"
 	"strconv"
 
@@ -40,14 +39,10 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "password can't be empty"})
 		return
 	}
-
-	id, err := h.service.CreateUser(c, models.User{
-		Login:    user.Login,
-		Password: user.Password,
-		Email:    user.Email,
-	})
+	var u models.User
+	u.FillInTheRequest(user)
+	id, err := h.service.CreateUser(c, u)
 	if err != nil {
-		log.Printf("⚠️ CreateUser error: %v, type: %T", err, err)
 		switch err {
 		case service.ErrUserAlreadyExists:
 			c.JSON(http.StatusConflict, gin.H{
@@ -78,13 +73,9 @@ func (h *UserHandler) ReadUser(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, response.UserResponse{
-		ID:        user.ID,
-		Login:     user.Login,
-		Email:     user.Email,
-		CreatedAt: user.CreatedAt,
-		UpdatedAt: user.UpdatedAt,
-	})
+	var u response.UserResponse
+	u.FillInTheModel(user)
+	c.JSON(http.StatusOK, u)
 }
 
 func (h *UserHandler) Update(c *gin.Context) {
@@ -153,12 +144,9 @@ func (h *UserHandler) ReadUsers(c *gin.Context) {
 	}
 	var usersReponse []response.UserResponse
 	for _, user := range users {
-		usersReponse = append(usersReponse, response.UserResponse{
-			ID:        user.ID,
-			Login:     user.Login,
-			CreatedAt: user.CreatedAt,
-			UpdatedAt: user.UpdatedAt,
-		})
+		var u response.UserResponse
+		u.FillInTheModel(&user)
+		usersReponse = append(usersReponse, u)
 	}
 	c.JSON(http.StatusOK, response.UsersListReponse{
 		Users: usersReponse,

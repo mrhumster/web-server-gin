@@ -39,7 +39,7 @@ func (r *UserRepository) UpdateUser(ctx context.Context, id uint, user models.Us
 		return 0, result.Error
 	}
 
-	userForUpdate.Password = user.Password
+	userForUpdate.Email = user.Email
 	userForUpdate.Login = user.Login
 
 	result = r.db.WithContext(ctx).Save(&userForUpdate)
