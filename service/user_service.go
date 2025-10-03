@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/mrhumster/web-server-gin/dto/request"
 	"github.com/mrhumster/web-server-gin/models"
 	"github.com/mrhumster/web-server-gin/repository"
 	"gorm.io/gorm"
@@ -44,7 +45,7 @@ func (s *UserService) ReadUser(ctx context.Context, id uint) (*models.User, erro
 	return s.repo.ReadUserByID(ctx, id)
 }
 
-func (s *UserService) UpdateUser(ctx context.Context, id uint, user models.User) (uint, error) {
+func (s *UserService) UpdateUser(ctx context.Context, id uint, user request.UpdateUserRequest) (uint, error) {
 	return s.repo.UpdateUser(ctx, id, user)
 }
 

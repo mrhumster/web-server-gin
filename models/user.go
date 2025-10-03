@@ -11,6 +11,8 @@ type User struct {
 	Login        string `gorm:"uniqueIndex;not null" json:"login"`
 	Email        string `gorm:"uniqueIndex;not nul" json:"email"`
 	PasswordHash string `gorm:"not null" json:"-"`
+	Name         string `gorm:"" json:"name"`
+	LastName     string `gorm:"" json:"last_name"`
 }
 
 func (u *User) SetPassword(password string) error {
@@ -30,5 +32,21 @@ func (u *User) CheckPassword(password string) bool {
 func (u *User) FillInTheRequest(r request.UserRequest) {
 	u.Login = r.Login
 	u.Email = r.Email
+	u.Name = r.Name
+	u.LastName = r.LastName
 	u.SetPassword(r.Password)
+}
+
+func (u *User) FillInTheUpdateRequest(r request.UpdateUserRequest) {
+	if r.Name != "" {
+		u.Name = r.Name
+	}
+
+	if r.LastName != "" {
+		u.LastName = r.LastName
+	}
+
+	if r.Email != "" {
+		u.Email = r.Email
+	}
 }

@@ -10,6 +10,8 @@ type UserResponse struct {
 	ID        uint      `json:"id"`
 	Login     string    `json:"login"`
 	Email     string    `json:"email"`
+	Name      string    `json:"name"`
+	LastName  string    `json:"last_name"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 }
@@ -27,4 +29,6 @@ func (u *UserResponse) FillInTheModel(m *models.User) {
 	u.Email = m.Email
 	u.CreatedAt = m.CreatedAt
 	u.UpdatedAt = m.UpdatedAt
+	u.Name = m.Name
+	u.LastName = m.LastName
 }

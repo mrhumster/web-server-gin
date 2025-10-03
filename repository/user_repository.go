@@ -2,7 +2,7 @@ package repository
 
 import (
 	"context"
-
+	"github.com/mrhumster/web-server-gin/dto/request"
 	"github.com/mrhumster/web-server-gin/models"
 	"gorm.io/gorm"
 )
@@ -32,18 +32,14 @@ func (r *UserRepository) ReadUserByID(ctx context.Context, id uint) (*models.Use
 	return user, nil
 }
 
-func (r *UserRepository) UpdateUser(ctx context.Context, id uint, user models.User) (uint, error) {
+func (r *UserRepository) UpdateUser(ctx context.Context, id uint, user request.UpdateUserRequest) (uint, error) {
 	var userForUpdate *models.User
 	result := r.db.WithContext(ctx).First(&userForUpdate, id)
 	if result.Error != nil {
 		return 0, result.Error
 	}
-
-	userForUpdate.Email = user.Email
-	userForUpdate.Login = user.Login
-
+	userForUpdate.FillInTheUpdateRequest(user)
 	result = r.db.WithContext(ctx).Save(&userForUpdate)
-
 	if result.Error != nil {
 		return 0, result.Error
 	}

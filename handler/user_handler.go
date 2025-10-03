@@ -86,7 +86,7 @@ func (h *UserHandler) Update(c *gin.Context) {
 		return
 	}
 
-	var user models.User
+	var user request.UpdateUserRequest
 	if err := c.ShouldBindJSON(&user); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -96,7 +96,14 @@ func (h *UserHandler) Update(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"id": id})
+	updatedUser, err := h.service.ReadUser(c, uint(id))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	var response response.UserResponse
+	response.FillInTheModel(updatedUser)
+	c.JSON(http.StatusOK, response)
 }
 
 func (h *UserHandler) Delete(c *gin.Context) {
@@ -117,6 +124,7 @@ func (h *UserHandler) Delete(c *gin.Context) {
 func (h *UserHandler) ReadUsers(c *gin.Context) {
 	page := int64(1)
 	limit := int64(10)
+
 	pageStr := c.Query("page")
 
 	if pageStr != "" {

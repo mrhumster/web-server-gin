@@ -32,6 +32,8 @@ func createUserRequest(router *gin.Engine, login, password, email string) *httpt
 		Login:    login,
 		Password: password,
 		Email:    email,
+		Name:     login,
+		LastName: login,
 	}
 
 	userJSON, _ := json.Marshal(user)
@@ -47,6 +49,7 @@ func createRouter(userHandler *UserHandler) *gin.Engine {
 	router := gin.Default()
 	router.POST("/users", userHandler.CreateUser)
 	router.GET("/users/:id", userHandler.ReadUser)
+	router.PATCH("/users/:id", userHandler.Update)
 	router.DELETE("/users/:id", userHandler.Delete)
 	router.GET("/users", userHandler.ReadUsers)
 	return router
@@ -257,4 +260,58 @@ func TestUserHandler_EmailIsUniq(t *testing.T) {
 	assert.Contains(t, respMap, "error")
 	assert.Equal(t, respMap["error"], "user already exists")
 
+}
+
+func TestUserHandler_Response_IncludeAllFields(t *testing.T) {
+	handler, db := setupTest()
+	defer db.Exec("DELETE FROM users")
+	router := createRouter(handler)
+	resp := createUserRequest(router, "testuser1", "password", "testuser1@test.local")
+	var body map[string]interface{}
+	json.Unmarshal(resp.Body.Bytes(), &body)
+	userId := body["id"]
+	req, _ := http.NewRequest("GET", fmt.Sprintf("/users/%.0f", userId), nil)
+	resp = httptest.NewRecorder()
+	router.ServeHTTP(resp, req)
+	json.Unmarshal(resp.Body.Bytes(), &body)
+	assert.Contains(t, body, "name")
+	assert.NotEmpty(t, body["name"])
+	assert.Contains(t, body, "last_name")
+	assert.NotEmpty(t, body["last_name"])
+}
+
+func TestUserHandler_UpdateUser(t *testing.T) {
+	handler, db := setupTest()
+	defer db.Exec("DELETE FROM users")
+	router := createRouter(handler)
+	resp := createUserRequest(router, "testuser1", "password", "testuser1@test.local")
+	var body, updatedBody map[string]interface{}
+	json.Unmarshal(resp.Body.Bytes(), &body)
+	var userUpdate request.UpdateUserRequest
+	userUpdate.Name = "Larry"
+	userUpdate.LastName = "Coat"
+	userJson, _ := json.Marshal(userUpdate)
+	req, _ := http.NewRequest(
+		"PATCH",
+		fmt.Sprintf("/users/%.0f", body["id"]),
+		bytes.NewBuffer(userJson),
+	)
+	resp = httptest.NewRecorder()
+	router.ServeHTTP(resp, req)
+	json.Unmarshal(resp.Body.Bytes(), &updatedBody)
+	v, exist := updatedBody["error"]
+	if exist {
+		log.Printf("⚠️ DEBUG: ERROR %v", v)
+		assert.True(t, false)
+		return
+	}
+	assert.Equal(t, http.StatusOK, resp.Code)
+	assert.Contains(t, updatedBody, "name")
+	assert.Equal(t, updatedBody["name"], "Larry")
+	assert.Contains(t, updatedBody, "last_name")
+	assert.Equal(t, updatedBody["last_name"], "Coat")
+	assert.Contains(t, updatedBody, "login")
+	assert.Equal(t, updatedBody["login"], "testuser1")
+	assert.Contains(t, updatedBody, "email")
+	assert.Equal(t, updatedBody["email"], "testuser1@test.local")
 }
