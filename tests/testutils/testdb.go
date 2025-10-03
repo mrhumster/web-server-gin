@@ -29,7 +29,6 @@ func InitTestDB() *gorm.DB {
 
 	err = TestDB.AutoMigrate(
 		&models.User{},
-		&models.Album{},
 	)
 	if err != nil {
 		log.Fatalf("🔴 Failed apply migrations")

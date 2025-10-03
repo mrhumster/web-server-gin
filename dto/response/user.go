@@ -25,10 +25,10 @@ type UsersListReponse struct {
 
 func (u *UserResponse) FillInTheModel(m *models.User) {
 	u.ID = m.ID
-	u.Login = m.Login
-	u.Email = m.Email
+	u.Login = *m.Login
+	u.Email = *m.Email
 	u.CreatedAt = m.CreatedAt
 	u.UpdatedAt = m.UpdatedAt
-	u.Name = m.Name
-	u.LastName = m.LastName
+	u.Name = *m.Name
+	u.LastName = *m.LastName
 }

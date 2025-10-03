@@ -9,7 +9,7 @@ type UserRequest struct {
 }
 
 type UpdateUserRequest struct {
-	Name     string `json:"name,omitempty" binding:"omitempty,max=100"`
-	LastName string `json:"last_name,omitempty" binding:"omitempty,max=100"`
-	Email    string `json:"email,omitempty" binding:"omitempty,email"`
+	Name     *string `json:"name,omitempty" binding:"omitempty,max=100"`
+	LastName *string `json:"last_name,omitempty" binding:"omitempty,max=100"`
+	Email    *string `json:"email,omitempty" binding:"omitempty,email"`
 }

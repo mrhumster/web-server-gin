@@ -19,6 +19,10 @@ import (
 	"gorm.io/gorm"
 )
 
+func strPtr(s string) *string {
+	return &s
+}
+
 func setupTest() (*UserHandler, *gorm.DB) {
 	db := testutils.GetTestDB()
 	userRepository := repository.NewUserRepository(db)
@@ -64,9 +68,9 @@ func TestUserHandler_Success(t *testing.T) {
 	router.POST("/users", handler.CreateUser)
 
 	user := request.UserRequest{
-		Login:    "testuser",
+		Login:    "testuser9",
 		Password: "testuser",
-		Email:    "testuser@test.local",
+		Email:    "testuser9@test.local",
 	}
 
 	userJSON, _ := json.Marshal(user)
@@ -288,8 +292,8 @@ func TestUserHandler_UpdateUser(t *testing.T) {
 	var body, updatedBody map[string]interface{}
 	json.Unmarshal(resp.Body.Bytes(), &body)
 	var userUpdate request.UpdateUserRequest
-	userUpdate.Name = "Larry"
-	userUpdate.LastName = "Coat"
+	userUpdate.Name = strPtr("Larry")
+	userUpdate.LastName = strPtr("Coat")
 	userJson, _ := json.Marshal(userUpdate)
 	req, _ := http.NewRequest(
 		"PATCH",

@@ -8,11 +8,11 @@ import (
 
 type User struct {
 	gorm.Model
-	Login        string `gorm:"uniqueIndex;not null" json:"login"`
-	Email        string `gorm:"uniqueIndex;not nul" json:"email"`
-	PasswordHash string `gorm:"not null" json:"-"`
-	Name         string `gorm:"" json:"name"`
-	LastName     string `gorm:"" json:"last_name"`
+	Login        *string `gorm:"uniqueIndex;not null" json:"login"`
+	Email        *string `gorm:"uniqueIndex;not nul" json:"email"`
+	PasswordHash *string `gorm:"not null" json:"-"`
+	Name         *string `gorm:"" json:"name"`
+	LastName     *string `gorm:"" json:"last_name"`
 }
 
 func (u *User) SetPassword(password string) error {
@@ -20,33 +20,35 @@ func (u *User) SetPassword(password string) error {
 	if err != nil {
 		return err
 	}
-	u.PasswordHash = string(hashedBytes)
+	hash := string(hashedBytes)
+	u.PasswordHash = &hash
 	return nil
 }
 
 func (u *User) CheckPassword(password string) bool {
-	err := bcrypt.CompareHashAndPassword([]byte(u.PasswordHash), []byte(password))
+	hashedBytes := []byte(*u.PasswordHash)
+	err := bcrypt.CompareHashAndPassword(hashedBytes, []byte(password))
 	return err == nil
 }
 
 func (u *User) FillInTheRequest(r request.UserRequest) {
-	u.Login = r.Login
-	u.Email = r.Email
-	u.Name = r.Name
-	u.LastName = r.LastName
+	u.Login = &r.Login
+	u.Email = &r.Email
+	u.Name = &r.Name
+	u.LastName = &r.LastName
 	u.SetPassword(r.Password)
 }
 
 func (u *User) FillInTheUpdateRequest(r request.UpdateUserRequest) {
-	if r.Name != "" {
+	if r.Name != nil {
 		u.Name = r.Name
 	}
 
-	if r.LastName != "" {
+	if r.LastName != nil {
 		u.LastName = r.LastName
 	}
 
-	if r.Email != "" {
+	if r.Email != nil {
 		u.Email = r.Email
 	}
 }
