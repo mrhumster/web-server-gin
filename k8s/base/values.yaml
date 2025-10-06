@@ -1,0 +1,10 @@
+global:
+  postgresql:
+    auth:
+      postgresPassword: "Master1234"
+
+primary:
+  persistence:
+    enabled: true
+    storageClass: "hostpath"
+    size: 8Gi
