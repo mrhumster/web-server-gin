@@ -7,9 +7,6 @@ import (
 	"testing"
 )
 
-func stringPtr(s string) *string {
-	return &s
-}
 func TestSetupDatabase(t *testing.T) {
 	t.Run("should create database connection with valid config", func(t *testing.T) {
 		cfg := config.TestConfig()
