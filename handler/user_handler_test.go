@@ -60,9 +60,8 @@ func createRouter(userHandler *UserHandler) *gin.Engine {
 }
 
 func TestUserHandler_Success(t *testing.T) {
-	handler, db := setupTest()
-	defer db.Exec("DELETE FROM users")
-
+	handler, _ := setupTest()
+	defer testutils.TeardownTestDatabase()
 	gin.SetMode(gin.TestMode)
 	router := gin.Default()
 	router.POST("/users", handler.CreateUser)
@@ -89,8 +88,8 @@ func TestUserHandler_Success(t *testing.T) {
 }
 
 func TestUserHandler_DiplucateLogin(t *testing.T) {
-	handler, db := setupTest()
-	defer db.Exec("DELETE FROM users")
+	handler, _ := setupTest()
+	defer testutils.TeardownTestDatabase()
 	router := createRouter(handler)
 	resp1 := createUserRequest(router, "testuser", "password1", "testuser@test.local")
 	assert.Equal(t, http.StatusCreated, resp1.Code)
@@ -104,8 +103,8 @@ func TestUserHandler_DiplucateLogin(t *testing.T) {
 }
 
 func TestUserHandler_EmptyPassword(t *testing.T) {
-	handler, db := setupTest()
-	defer db.Exec("DELETE FROM users")
+	handler, _ := setupTest()
+	defer testutils.TeardownTestDatabase()
 	router := createRouter(handler)
 	resp1 := createUserRequest(router, "testuser", "", "testuser@test.local")
 
@@ -118,8 +117,8 @@ func TestUserHandler_EmptyPassword(t *testing.T) {
 }
 
 func TestUserHandler_InvalidDate(t *testing.T) {
-	handler, db := setupTest()
-	defer db.Exec("DELETE FROM users")
+	handler, _ := setupTest()
+	defer testutils.TeardownTestDatabase()
 	router := createRouter(handler)
 	userJSON := `{"login": 123456, "password": 123456}`
 	req, _ := http.NewRequest("POST", "/users", bytes.NewBuffer([]byte(userJSON)))
@@ -134,8 +133,8 @@ func TestUserHandler_InvalidDate(t *testing.T) {
 }
 
 func TestUserHandler_ReadUser_InvalidID(t *testing.T) {
-	handler, db := setupTest()
-	defer db.Exec("DELETE FROM users")
+	handler, _ := setupTest()
+	defer testutils.TeardownTestDatabase()
 	router := createRouter(handler)
 	resp := createUserRequest(router, "testuser", "password", "testuser@test.local")
 
@@ -160,8 +159,8 @@ func TestUserHandler_ReadUser_InvalidID(t *testing.T) {
 }
 
 func TestUserHandler_DeleteUser(t *testing.T) {
-	handler, db := setupTest()
-	defer db.Exec("DELETE FROM users")
+	handler, _ := setupTest()
+	defer testutils.TeardownTestDatabase()
 	router := createRouter(handler)
 	resp := createUserRequest(router, "testuser", "password", "testuser@test.local")
 
@@ -183,8 +182,8 @@ func TestUserHandler_ReadUsers(t *testing.T) {
 	page := float64(1)
 	limit := float64(5)
 	total := 10
-	handler, db := setupTest()
-	defer db.Exec("DELETE FROM users")
+	handler, _ := setupTest()
+	defer testutils.TeardownTestDatabase()
 	router := createRouter(handler)
 	for i := range total {
 		createUserRequest(router, fmt.Sprintf("testuser%d", i), "password", fmt.Sprintf("testuser%d@test.local", i))
@@ -219,8 +218,8 @@ func TestUserHandler_ReadUsers(t *testing.T) {
 }
 
 func TestUserHandler_ReadUsers_QueryValidate(t *testing.T) {
-	handler, db := setupTest()
-	defer db.Exec("DELETE FROM users")
+	handler, _ := setupTest()
+	defer testutils.TeardownTestDatabase()
 	router := createRouter(handler)
 	req, _ := http.NewRequest("GET", "/users?page=-1&limit=s", nil)
 	resp := httptest.NewRecorder()
@@ -238,8 +237,8 @@ func TestUserHandler_ReadUsers_QueryValidate(t *testing.T) {
 }
 
 func TestUserHandler_UserResponseIncludeEmail(t *testing.T) {
-	handler, db := setupTest()
-	defer db.Exec("DELETE FROM users")
+	handler, _ := setupTest()
+	defer testutils.TeardownTestDatabase()
 	router := createRouter(handler)
 	resp := createUserRequest(router, "testuser1", "password", "testuser1@test.local")
 	var respMap map[string]any
@@ -253,8 +252,8 @@ func TestUserHandler_UserResponseIncludeEmail(t *testing.T) {
 }
 
 func TestUserHandler_EmailIsUniq(t *testing.T) {
-	handler, db := setupTest()
-	defer db.Exec("DELETE FROM users")
+	handler, _ := setupTest()
+	defer testutils.TeardownTestDatabase()
 	router := createRouter(handler)
 	createUserRequest(router, "testuser1", "password", "testuser1@test.local")
 	resp := createUserRequest(router, "testuser2", "password", "testuser1@test.local")
@@ -267,8 +266,8 @@ func TestUserHandler_EmailIsUniq(t *testing.T) {
 }
 
 func TestUserHandler_Response_IncludeAllFields(t *testing.T) {
-	handler, db := setupTest()
-	defer db.Exec("DELETE FROM users")
+	handler, _ := setupTest()
+	defer testutils.TeardownTestDatabase()
 	router := createRouter(handler)
 	resp := createUserRequest(router, "testuser1", "password", "testuser1@test.local")
 	var body map[string]interface{}
@@ -285,8 +284,8 @@ func TestUserHandler_Response_IncludeAllFields(t *testing.T) {
 }
 
 func TestUserHandler_UpdateUser(t *testing.T) {
-	handler, db := setupTest()
-	defer db.Exec("DELETE FROM users")
+	handler, _ := setupTest()
+	defer testutils.TeardownTestDatabase()
 	router := createRouter(handler)
 	resp := createUserRequest(router, "testuser1", "password", "testuser1@test.local")
 	var body, updatedBody map[string]interface{}

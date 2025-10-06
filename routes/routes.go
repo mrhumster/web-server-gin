@@ -5,25 +5,14 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/mrhumster/web-server-gin/config"
 	"github.com/mrhumster/web-server-gin/handler"
-	"github.com/mrhumster/web-server-gin/models"
 	"github.com/mrhumster/web-server-gin/repository"
 	"github.com/mrhumster/web-server-gin/service"
-	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
-func SetupRoutes(r *gin.Engine, cfg config.Config) *gorm.DB {
-	db, err := gorm.Open(postgres.Open(cfg.GetDsn()), &gorm.Config{})
-
-	if err != nil {
-		panic("⚠️ GORM not open DB")
-
-	}
-
-	db.AutoMigrate(&models.User{})
-
+func SetupRoutes(db *gorm.DB) *gin.Engine {
+	r := gin.Default()
 	userRepo := repository.NewUserRepository(db)
 	userService := service.NewUserService(userRepo)
 	userHandler := handler.NewUserHandler(userService)
@@ -42,6 +31,5 @@ func SetupRoutes(r *gin.Engine, cfg config.Config) *gorm.DB {
 		}
 		c.JSON(http.StatusOK, gin.H{"status": "up"})
 	})
-
-	return db
+	return r
 }

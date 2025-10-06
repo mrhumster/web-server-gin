@@ -16,7 +16,7 @@ func strPtr(s string) *string {
 
 func TestUserRepository_CreateRepo(t *testing.T) {
 	db := testutils.GetTestDB()
-	defer db.Exec("DELETE FROM users")
+	defer testutils.TeardownTestDatabase()
 	repo := NewUserRepository(db)
 	ctx := context.Background()
 	t.Run("Create and Read user", func(t *testing.T) {
@@ -50,7 +50,7 @@ func TestUserRepository_CreateRepo(t *testing.T) {
 
 func TestUserRepository_ReadList(t *testing.T) {
 	db := testutils.GetTestDB()
-	defer db.Exec("DELETE FROM users")
+	defer testutils.TeardownTestDatabase()
 	repo := NewUserRepository(db)
 	ctx := context.Background()
 	t.Run("Read userlist", func(t *testing.T) {
@@ -80,7 +80,7 @@ func TestUserRepository_ReadList(t *testing.T) {
 
 func TestUserRepository_UpdateRepo(t *testing.T) {
 	db := testutils.GetTestDB()
-	defer db.Exec("DELETE FROM users")
+	defer testutils.TeardownTestDatabase()
 	repo := NewUserRepository(db)
 	ctx := context.Background()
 	t.Run("Update user", func(t *testing.T) {

@@ -9,15 +9,15 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/gin-gonic/gin"
 	"github.com/mrhumster/web-server-gin/config"
+	"github.com/mrhumster/web-server-gin/database"
 	"github.com/mrhumster/web-server-gin/routes"
 )
 
 func main() {
-	r := gin.Default()
 	cfg := config.LoadConfig()
-	db := routes.SetupRoutes(r, cfg)
+	db := database.SetupDatabase(cfg)
+	r := routes.SetupRoutes(db)
 
 	defer func() {
 		log.Println("🟡 Closing database pool...")
