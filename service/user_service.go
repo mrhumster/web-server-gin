@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"errors"
+	"log"
 
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/mrhumster/web-server-gin/dto/request"
@@ -55,4 +56,26 @@ func (s *UserService) DeleteUser(ctx context.Context, id uint) error {
 
 func (s *UserService) ReadUserList(ctx context.Context, limit, page int64) ([]models.User, int64, error) {
 	return s.repo.ReadUserList(ctx, limit, page)
+}
+
+func (s *UserService) GetUserByEmail(ctx context.Context, email string) (*models.User, error) {
+	return s.repo.ReadUserByEmail(ctx, email)
+}
+
+func (s *UserService) ValidateUser(ctx context.Context, email, password string) (*models.User, error) {
+	var user *models.User
+	var err error
+	if user, err = s.GetUserByEmail(ctx, email); err != nil {
+		log.Printf("👷🏻‍♂️ SERVCE: ValidateUser Error  %v", err.Error())
+		users, _, _ := s.ReadUserList(ctx, 10, 1)
+		for i := range users {
+			users[i].Debug()
+		}
+		return nil, err
+	}
+
+	if user.CheckPassword(password) {
+		return user, nil
+	}
+	return nil, errors.New("invalid password")
 }

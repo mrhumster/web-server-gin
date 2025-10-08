@@ -1,7 +1,7 @@
 package request
 
 type UserRequest struct {
-	Login    string `json:"login" binding:"required,min=3,max=20"`
+	Login    string `json:"login" binding:"required,min=3,max=100"`
 	Password string `json:"password" binding:"required,min=6,max=100"`
 	Name     string `json:"name" binding:"max=100"`
 	LastName string `json:"last_name" binding:"max=100"`

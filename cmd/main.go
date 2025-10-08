@@ -17,7 +17,7 @@ import (
 func main() {
 	cfg := config.LoadConfig()
 	db := database.SetupDatabase(cfg)
-	r := routes.SetupRoutes(db)
+	r := routes.SetupRoutes(db, "qa")
 
 	defer func() {
 		log.Println("🟡 Closing database pool...")

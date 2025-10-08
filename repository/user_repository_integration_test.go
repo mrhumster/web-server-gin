@@ -2,7 +2,9 @@ package repository
 
 import (
 	"context"
+	"fmt"
 	"testing"
+	"time"
 
 	"github.com/mrhumster/web-server-gin/dto/request"
 	"github.com/mrhumster/web-server-gin/models"
@@ -14,43 +16,68 @@ func strPtr(s string) *string {
 	return &s
 }
 
+func generateUniqueUser() models.User {
+	timestamp := time.Now().UnixNano()
+	uniqueLogin := fmt.Sprintf("testuser_%d", timestamp)
+	uniqueEmail := fmt.Sprintf("testuser_%d@test.local", timestamp)
+
+	return models.User{
+		Name:         strPtr("Name"),
+		LastName:     strPtr("Lastname"),
+		Login:        &uniqueLogin,
+		PasswordHash: strPtr("#########"),
+		Email:        &uniqueEmail,
+	}
+}
+
 func TestUserRepository_CreateRepo(t *testing.T) {
 	db := testutils.GetTestDB()
-	defer testutils.TeardownTestDatabase()
+	defer testutils.CleanTestDatabase()
 	repo := NewUserRepository(db)
 	ctx := context.Background()
+
 	t.Run("Create and Read user", func(t *testing.T) {
-		user := models.User{
-			Name:         strPtr("Name"),
-			LastName:     strPtr("Lastname"),
-			Login:        strPtr("testuser"),
-			PasswordHash: strPtr("#########"),
-			Email:        strPtr("testuser@test.local"),
-		}
+		user := generateUniqueUser()
+
 		id, err := repo.CreateUser(ctx, user)
 		assert.NoError(t, err)
 		assert.Greater(t, id, uint(0))
+
 		foundUser, err := repo.ReadUserByID(ctx, id)
 		assert.NoError(t, err)
 		assert.Equal(t, user.Login, foundUser.Login)
 		assert.Equal(t, user.Email, foundUser.Email)
+
 		foundUser, err = repo.ReadUserByID(ctx, id+1)
 		assert.Error(t, err)
-		user = models.User{
-			Name:         strPtr("Name"),
-			LastName:     strPtr("Lastname"),
-			Login:        nil,
-			PasswordHash: strPtr("#########"),
-			Email:        strPtr("testuser@test.local"),
-		}
-		_, err = repo.CreateUser(ctx, user)
+	})
+
+	t.Run("Create user with nil login", func(t *testing.T) {
+		user := generateUniqueUser()
+		user.Login = nil
+
+		_, err := repo.CreateUser(ctx, user)
 		assert.Error(t, err)
+	})
+
+	t.Run("Create user with duplicate login", func(t *testing.T) {
+		user := generateUniqueUser()
+
+		id, err := repo.CreateUser(ctx, user)
+		assert.NoError(t, err)
+		assert.Greater(t, id, uint(0))
+
+		user2 := user
+		user2.Email = strPtr("different@test.local")
+		_, err = repo.CreateUser(ctx, user2)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "duplicate")
 	})
 }
 
 func TestUserRepository_ReadList(t *testing.T) {
 	db := testutils.GetTestDB()
-	defer testutils.TeardownTestDatabase()
+	defer testutils.CleanTestDatabase()
 	repo := NewUserRepository(db)
 	ctx := context.Background()
 	t.Run("Read userlist", func(t *testing.T) {
@@ -80,7 +107,7 @@ func TestUserRepository_ReadList(t *testing.T) {
 
 func TestUserRepository_UpdateRepo(t *testing.T) {
 	db := testutils.GetTestDB()
-	defer testutils.TeardownTestDatabase()
+	defer testutils.CleanTestDatabase()
 	repo := NewUserRepository(db)
 	ctx := context.Background()
 	t.Run("Update user", func(t *testing.T) {
@@ -102,5 +129,27 @@ func TestUserRepository_UpdateRepo(t *testing.T) {
 		assert.Equal(t, *updatedUser.Login, "testuser1")
 		err = repo.DeleteUserByID(ctx, id)
 		assert.NoError(t, err)
+	})
+}
+
+func TestUserRepository_ReadByEmail(t *testing.T) {
+	db := testutils.GetTestDB()
+	defer testutils.CleanTestDatabase()
+	repo := NewUserRepository(db)
+	ctx := context.Background()
+	t.Run("Create user and get user by email", func(t *testing.T) {
+		user := models.User{
+			Login:        strPtr("billy"),
+			Email:        strPtr("billy@test.local"),
+			PasswordHash: strPtr("***1234***"),
+		}
+		id, err := repo.CreateUser(ctx, user)
+		assert.NotEmpty(t, id)
+		assert.NoError(t, err)
+		u, _ := repo.ReadUserByID(ctx, id)
+		u, err = repo.ReadUserByEmail(ctx, "billy@test.local")
+		assert.NoError(t, err)
+		assert.Equal(t, id, u.ID)
+		assert.Equal(t, user.Email, u.Email)
 	})
 }

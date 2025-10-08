@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"log"
 	"net/http"
 	"strconv"
 
@@ -41,6 +42,8 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 	}
 	var u models.User
 	u.FillInTheRequest(user)
+	log.Printf("👷🏻‍♂️ SERVICE. USER CREATE")
+	u.Debug()
 	id, err := h.service.CreateUser(c, u)
 	if err != nil {
 		switch err {
@@ -61,6 +64,12 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 }
 
 func (h *UserHandler) ReadUser(c *gin.Context) {
+	requestUserId, err := GetUserIDFromContext(c)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, response.ErrorResponse(err.Error()))
+		return
+	}
+
 	strId := c.Param("id")
 	id, err := strconv.ParseUint(strId, 10, 64)
 	if err != nil {
@@ -68,9 +77,16 @@ func (h *UserHandler) ReadUser(c *gin.Context) {
 		return
 	}
 
+	if requestUserId != id {
+		c.JSON(http.StatusForbidden, response.ErrorResponse("you can update only that records, when you owner"))
+		c.Abort()
+		return
+	}
+
 	user, err := h.service.ReadUser(c, uint(id))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.Abort()
 		return
 	}
 	var u response.UserResponse
@@ -79,8 +95,19 @@ func (h *UserHandler) ReadUser(c *gin.Context) {
 }
 
 func (h *UserHandler) Update(c *gin.Context) {
+	requestUserId, err := GetUserIDFromContext(c)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, response.ErrorResponse("Authentication required"))
+		return
+	}
+
 	strId := c.Param("id")
 	id, err := strconv.ParseUint(strId, 10, 64)
+	if requestUserId != id {
+		c.JSON(http.StatusForbidden, response.ErrorResponse("you can update only that records, when you owner"))
+		c.Abort()
+		return
+	}
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
 		return
@@ -107,12 +134,24 @@ func (h *UserHandler) Update(c *gin.Context) {
 }
 
 func (h *UserHandler) Delete(c *gin.Context) {
+	requestUserId, err := GetUserIDFromContext(c)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, response.ErrorResponse("Authentication required"))
+		return
+	}
+
 	strId := c.Param("id")
 	id, err := strconv.ParseUint(strId, 10, 64)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+	if requestUserId != id {
+		c.JSON(http.StatusForbidden, response.ErrorResponse("you can update only that records, when you owner"))
+		c.Abort()
+		return
+	}
+
 	err = h.service.DeleteUser(c, uint(id))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -122,6 +161,11 @@ func (h *UserHandler) Delete(c *gin.Context) {
 }
 
 func (h *UserHandler) ReadUsers(c *gin.Context) {
+	_, err := GetUserIDFromContext(c)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, response.ErrorResponse("Authentication required"))
+		return
+	}
 	page := int64(1)
 	limit := int64(10)
 

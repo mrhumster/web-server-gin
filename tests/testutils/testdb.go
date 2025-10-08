@@ -52,7 +52,7 @@ func CleanTestDatabase() {
 
 	TestDB.Exec("SET session_replication_role = 'replica';")
 
-	tables := []string{"users", "albums"}
+	tables := []string{"users"}
 	for _, table := range tables {
 		TestDB.Exec(fmt.Sprintf("TRUNCATE TABLE %s CASCADE;", table))
 	}

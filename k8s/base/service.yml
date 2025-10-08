@@ -2,6 +2,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: web-server-gin-service
+  namespace: go-app
 spec:
   selector:
     app: web-server-gin

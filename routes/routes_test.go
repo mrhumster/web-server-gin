@@ -11,6 +11,6 @@ import (
 func TestRoutes(t *testing.T) {
 	cfg := config.TestConfig()
 	db := database.SetupDatabase(cfg)
-	SetupRoutes(db)
+	SetupRoutes(db, "test")
 	assert.IsType(t, &gorm.DB{}, db)
 }

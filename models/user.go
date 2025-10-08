@@ -1,6 +1,8 @@
 package models
 
 import (
+	"log"
+
 	"github.com/mrhumster/web-server-gin/dto/request"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
@@ -51,4 +53,10 @@ func (u *User) FillInTheUpdateRequest(r request.UpdateUserRequest) {
 	if r.Email != nil {
 		u.Email = r.Email
 	}
+}
+
+func (u *User) Debug() {
+	log.Printf("👤 Login: %s", *u.Login)
+	log.Printf("\tEmail: %s", *u.Email)
+	log.Printf("\tPasswordHash: %s", *u.PasswordHash)
 }

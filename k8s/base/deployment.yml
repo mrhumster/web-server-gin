@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: web-server-gin
+  namespace: go-app
   labels:
     app: web-server-gin
 spec:
@@ -16,7 +17,7 @@ spec:
     spec:
       containers:
         - name: web-server-gin
-          image: xomrkob/web-server-gin:1.1.30
+          image: xomrkob/web-server-gin:1.1.36
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
@@ -39,6 +40,11 @@ spec:
                 secretKeyRef:
                   name: go-app-secret
                   key: DB_USER
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: go-app-secret
+                  key: JWT_SECRET
           resources:
             requests:
               memory: "64Mi"

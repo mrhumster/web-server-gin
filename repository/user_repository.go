@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+
 	"github.com/mrhumster/web-server-gin/dto/request"
 	"github.com/mrhumster/web-server-gin/models"
 	"gorm.io/gorm"
@@ -69,4 +70,13 @@ func (r *UserRepository) ReadUserList(ctx context.Context, l, page int64) ([]mod
 		return []models.User{}, int64(0), result.Error
 	}
 	return users, total, nil
+}
+
+func (r *UserRepository) ReadUserByEmail(ctx context.Context, value string) (*models.User, error) {
+	var user models.User
+	if err := r.db.WithContext(ctx).Model(&models.User{}).First(&user, "email = ?", value).Error; err != nil {
+		return nil, err
+	}
+	user.Debug()
+	return &user, nil
 }
