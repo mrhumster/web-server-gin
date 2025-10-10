@@ -2,8 +2,6 @@ package handler
 
 import (
 	"errors"
-	"log"
-
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 )
@@ -32,7 +30,6 @@ func GetUserIDFromContext(c *gin.Context) (uint64, error) {
 	if !exists {
 		return 0, errors.New("user ID not found in context")
 	}
-	log.Printf("⚠️ GET USER ID %v %t", userID, userID)
 	id, ok := userID.(uint64)
 	if !ok {
 		return 0, errors.New("invalid user ID type in context")

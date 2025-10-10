@@ -5,8 +5,31 @@ import (
 
 	"github.com/mrhumster/web-server-gin/dto/request"
 	"github.com/mrhumster/web-server-gin/models"
+	"github.com/sony/gobreaker"
 	"gorm.io/gorm"
+	"log"
+	"time"
 )
+
+var dbCircuitBreaker = gobreaker.NewCircuitBreaker(gobreaker.Settings{
+	Name:        "Database",
+	MaxRequests: 3,
+	Interval:    30 * time.Second,
+	Timeout:     60 * time.Second,
+	ReadyToTrip: func(counts gobreaker.Counts) bool {
+		return counts.ConsecutiveFailures > 3
+	},
+	OnStateChange: func(name string, from gobreaker.State, to gobreaker.State) {
+		log.Printf("Circuit Breaker %s: %s -> %s", name, from, to)
+	},
+})
+
+func WithCircuitBreaker(fn func() error) error {
+	_, err := dbCircuitBreaker.Execute(func() (interface{}, error) {
+		return nil, fn()
+	})
+	return err
+}
 
 type UserRepository struct {
 	db *gorm.DB
@@ -77,6 +100,5 @@ func (r *UserRepository) ReadUserByEmail(ctx context.Context, value string) (*mo
 	if err := r.db.WithContext(ctx).Model(&models.User{}).First(&user, "email = ?", value).Error; err != nil {
 		return nil, err
 	}
-	user.Debug()
 	return &user, nil
 }
