@@ -45,10 +45,6 @@ func createUserRequest(router *gin.Engine, login, password, email string) *httpt
 	router.ServeHTTP(resp, req)
 	var body map[string]interface{}
 	json.Unmarshal(resp.Body.Bytes(), &body)
-	log.Printf("➕ createUserRequest")
-	for v, k := range body {
-		log.Printf("%v: %v", v, k)
-	}
 	return resp
 }
 
@@ -155,7 +151,7 @@ func TestUserHandler_ReadUser_InvalidID(t *testing.T) {
 	req.Header.Set("Authorization", loginResponse.GetTokenAsBearerHeader())
 	resp = httptest.NewRecorder()
 	router.ServeHTTP(resp, req)
-	assert.Equal(t, http.StatusBadRequest, resp.Code)
+	assert.Equal(t, http.StatusForbidden, resp.Code)
 }
 
 func TestUserHandler_DeleteUser(t *testing.T) {
@@ -170,13 +166,15 @@ func TestUserHandler_DeleteUser(t *testing.T) {
 	req.Header.Set("Authorization", loginReponse.GetTokenAsBearerHeader())
 	resp = httptest.NewRecorder()
 	router.ServeHTTP(resp, req)
+	var body map[string]any
+	json.Unmarshal(resp.Body.Bytes(), &body)
 	assert.Equal(t, http.StatusNoContent, resp.Code)
 
 	req, _ = http.NewRequest("DELETE", "/api/users/-1", nil)
 	req.Header.Add("Authorization", loginReponse.GetTokenAsBearerHeader())
 	resp = httptest.NewRecorder()
 	router.ServeHTTP(resp, req)
-	assert.Equal(t, http.StatusBadRequest, resp.Code)
+	assert.Equal(t, http.StatusForbidden, resp.Code)
 }
 
 func TestUserHandler_ReadUsers(t *testing.T) {

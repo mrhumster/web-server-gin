@@ -37,12 +37,12 @@ func (a *AuthHandler) Login(c *gin.Context) {
 	}
 
 	if u, err = a.UserService.ValidateUser(c, req.Email, req.Password); err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		c.AbortWithStatusJSON(http.StatusUnauthorized, response.ErrorResponse(err.Error()))
 		return
 	}
-
 	t = jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"user_id": float64(u.ID),
+		"role":    &u.Role,
 		"email":   &u.Email,
 		"exp":     time.Now().Add(time.Hour * 24).Unix(),
 	})

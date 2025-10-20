@@ -1,9 +1,12 @@
 package routes
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 
+	"github.com/casbin/casbin/v2"
+	gormadapter "github.com/casbin/gorm-adapter/v3"
 	"github.com/gin-gonic/gin"
 	"github.com/mrhumster/web-server-gin/config"
 	"github.com/mrhumster/web-server-gin/handler"
@@ -13,6 +16,12 @@ import (
 	"gorm.io/gorm"
 )
 
+func AddPolicyIfNotExists(sub, obj, act string, enforcer *casbin.Enforcer) {
+	if hasPolicy, _ := enforcer.HasPolicy(sub, obj, act); !hasPolicy {
+		enforcer.AddPolicy(sub, obj, act)
+	}
+}
+
 func SetupRoutes(db *gorm.DB, mode string) *gin.Engine {
 	if mode == "test" {
 		gin.SetMode(gin.TestMode)
@@ -20,29 +29,43 @@ func SetupRoutes(db *gorm.DB, mode string) *gin.Engine {
 	if mode == "debug" {
 		gin.SetMode(gin.DebugMode)
 	}
+
 	r := gin.Default()
 
 	cfg := config.LoadConfig()
 	if mode == "test" || mode == "debug" {
 		cfg = config.TestConfig()
 	}
+
+	adapter, err := gormadapter.NewAdapterByDB(db)
+	if err != nil {
+		panic(fmt.Sprintf("failed to initialize casbin adapter: %v", err))
+	}
+
+	enforcer, err := casbin.NewEnforcer("../config/model.conf", adapter)
+	if err != nil {
+		panic("⚠️ Error loading roles config")
+	}
+
 	userRepo := repository.NewUserRepository(db)
-	userService := service.NewUserService(userRepo)
+	userService := service.NewUserService(userRepo, enforcer)
 	userHandler := handler.NewUserHandler(userService)
 	authHandler := handler.NewAuthHandler(userService, cfg.JwtSecret)
+
+	AddPolicyIfNotExists("admin", "*", "*", enforcer)
+	AddPolicyIfNotExists("member", "users", "read", enforcer)
+	AddPolicyIfNotExists("*", "users", "read", enforcer)
 
 	r.POST("/api/login", authHandler.Login)
 	r.GET("/api/logout", authHandler.Logout)
 	r.POST("/api/users", userHandler.CreateUser)
 
-	auth := r.Group("/api")
-
-	auth.Use(middleware.AuthMiddleware(cfg.JwtSecret))
+	auth := r.Group("/api", middleware.AuthMiddleware(cfg.JwtSecret))
 	{
-		auth.GET("/users", userHandler.ReadUsers)
-		auth.GET("/users/:id", userHandler.ReadUser)
-		auth.PATCH("/users/:id", userHandler.Update)
-		auth.DELETE("/users/:id", userHandler.Delete)
+		auth.GET("/users", middleware.Authorize("users", "read", enforcer), userHandler.ReadUsers)
+		auth.GET("/users/:id", middleware.Authorize("users", "read", enforcer), userHandler.ReadUser)
+		auth.PATCH("/users/:id", middleware.Authorize("users", "write", enforcer), userHandler.Update)
+		auth.DELETE("/users/:id", middleware.Authorize("users", "delete", enforcer), userHandler.Delete)
 	}
 
 	r.GET("/health", func(c *gin.Context) {

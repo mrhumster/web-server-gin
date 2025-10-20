@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -25,7 +24,6 @@ func AuthByLogin(router *gin.Engine, email, password string) (*response.LoginRes
 	loginRequest := request.LoginRequest{Email: email, Password: password}
 	loginRequestJson, _ := json.Marshal(loginRequest)
 	if req, err = http.NewRequest("POST", "/api/login", bytes.NewBuffer(loginRequestJson)); err != nil {
-		log.Printf("🔴 AUTH ERROR: %v", err.Error())
 		return nil, err
 	}
 	resp := httptest.NewRecorder()

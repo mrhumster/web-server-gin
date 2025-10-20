@@ -3,8 +3,9 @@ package service
 import (
 	"context"
 	"errors"
-	"log"
+	"fmt"
 
+	"github.com/casbin/casbin/v2"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/mrhumster/web-server-gin/dto/request"
 	"github.com/mrhumster/web-server-gin/models"
@@ -17,15 +18,23 @@ var (
 	ErrUserNotFount      = errors.New("user not found")
 )
 
-type UserService struct {
-	repo *repository.UserRepository
+func strPtr(s string) *string {
+	return &s
 }
 
-func NewUserService(repo *repository.UserRepository) *UserService {
-	return &UserService{repo: repo}
+type UserService struct {
+	repo     *repository.UserRepository
+	enforcer *casbin.Enforcer
+}
+
+func NewUserService(repo *repository.UserRepository, enforcer *casbin.Enforcer) *UserService {
+	return &UserService{repo: repo, enforcer: enforcer}
 }
 
 func (s *UserService) CreateUser(ctx context.Context, user models.User) (uint, error) {
+	if user.Role == nil {
+		user.Role = strPtr("member")
+	}
 	id, err := s.repo.CreateUser(ctx, user)
 	if err != nil {
 		var pgErr *pgconn.PgError
@@ -39,6 +48,11 @@ func (s *UserService) CreateUser(ctx context.Context, user models.User) (uint, e
 		}
 		return 0, err
 	}
+
+	policy := fmt.Sprintf("%d", id)
+	resource := fmt.Sprintf("users/%d", id)
+	s.enforcer.AddPolicy(policy, resource, "*")
+	s.enforcer.AddPolicy(policy, "users", "read")
 	return id, nil
 }
 
@@ -51,7 +65,15 @@ func (s *UserService) UpdateUser(ctx context.Context, id uint, user request.Upda
 }
 
 func (s *UserService) DeleteUser(ctx context.Context, id uint) error {
-	return s.repo.DeleteUserByID(ctx, id)
+	err := s.repo.DeleteUserByID(ctx, id)
+	if err == nil {
+		policy := fmt.Sprintf("users:%d", id)
+		resource := fmt.Sprintf("users/%d", id)
+		s.enforcer.AddPolicy(policy, resource, "*")
+		s.enforcer.RemovePolicy(policy, resource, "*")
+	}
+	return err
+
 }
 
 func (s *UserService) ReadUserList(ctx context.Context, limit, page int64) ([]models.User, int64, error) {
@@ -66,11 +88,6 @@ func (s *UserService) ValidateUser(ctx context.Context, email, password string) 
 	var user *models.User
 	var err error
 	if user, err = s.GetUserByEmail(ctx, email); err != nil {
-		log.Printf("👷🏻‍♂️ SERVCE: ValidateUser Error  %v", err.Error())
-		users, _, _ := s.ReadUserList(ctx, 10, 1)
-		for i := range users {
-			users[i].Debug()
-		}
 		return nil, err
 	}
 

@@ -35,7 +35,7 @@ export TEST_DB_NAME="test_database1"
 
 echo "🧪 Running tests with database on localhost:$LOCAL_DB_PORT..."
 
-go test ./... -v
+go test ./...
 
 TEST_EXIT_CODE=$?
 

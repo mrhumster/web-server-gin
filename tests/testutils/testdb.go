@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/casbin/casbin/v2"
+	gormadapter "github.com/casbin/gorm-adapter/v3"
 	"github.com/mrhumster/web-server-gin/config"
 	"github.com/mrhumster/web-server-gin/models"
 	"gorm.io/driver/postgres"
@@ -52,7 +54,7 @@ func CleanTestDatabase() {
 
 	TestDB.Exec("SET session_replication_role = 'replica';")
 
-	tables := []string{"users"}
+	tables := []string{"users", "casbin_rule"}
 	for _, table := range tables {
 		TestDB.Exec(fmt.Sprintf("TRUNCATE TABLE %s CASCADE;", table))
 	}
@@ -77,4 +79,17 @@ func GetTestDB() *gorm.DB {
 		return SetupTestDB()
 	}
 	return TestDB
+}
+
+func GetEnforcer(db *gorm.DB) *casbin.Enforcer {
+	adapter, err := gormadapter.NewAdapterByDB(db)
+	if err != nil {
+		panic(fmt.Sprintf("failed to initialize casbin adapter: %v", err))
+	}
+
+	enforcer, err := casbin.NewEnforcer("../config/model.conf", adapter)
+	if err != nil {
+		panic("⚠️ Error loading roles config")
+	}
+	return enforcer
 }

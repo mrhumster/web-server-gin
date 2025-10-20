@@ -11,6 +11,10 @@ import (
 	"time"
 )
 
+func ptrStr(s string) *string {
+	return &s
+}
+
 var dbCircuitBreaker = gobreaker.NewCircuitBreaker(gobreaker.Settings{
 	Name:        "Database",
 	MaxRequests: 3,
@@ -40,6 +44,9 @@ func NewUserRepository(db *gorm.DB) *UserRepository {
 }
 
 func (r *UserRepository) CreateUser(ctx context.Context, user models.User) (uint, error) {
+	if user.Role == nil {
+		user.Role = ptrStr("member")
+	}
 	result := r.db.WithContext(ctx).Create(&user)
 	if result.Error != nil {
 		return 0, result.Error
@@ -101,4 +108,9 @@ func (r *UserRepository) ReadUserByEmail(ctx context.Context, value string) (*mo
 		return nil, err
 	}
 	return &user, nil
+}
+
+func (r *UserRepository) Exists(ctx context.Context, id uint) bool {
+	u, _ := r.ReadUserByID(ctx, id)
+	return u != nil
 }

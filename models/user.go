@@ -15,6 +15,11 @@ type User struct {
 	PasswordHash *string `gorm:"not null" json:"-"`
 	Name         *string `gorm:"" json:"name"`
 	LastName     *string `gorm:"" json:"last_name"`
+	Role         *string `gorm:"" json:"role"`
+}
+
+func (User) TableName() string {
+	return "users"
 }
 
 func (u *User) SetPassword(password string) error {

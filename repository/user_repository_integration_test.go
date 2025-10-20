@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"fmt"
+	"log"
 	"testing"
 	"time"
 
@@ -70,6 +71,7 @@ func TestUserRepository_CreateRepo(t *testing.T) {
 		user2 := user
 		user2.Email = strPtr("different@test.local")
 		_, err = repo.CreateUser(ctx, user2)
+		log.Printf("⚠️ EBANINA %s", err.Error())
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "duplicate")
 	})
@@ -151,5 +153,25 @@ func TestUserRepository_ReadByEmail(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, id, u.ID)
 		assert.Equal(t, user.Email, u.Email)
+	})
+}
+
+func TestUserRepository_UserExist(t *testing.T) {
+	db := testutils.GetTestDB()
+	defer testutils.CleanTestDatabase()
+	repo := NewUserRepository(db)
+	ctx := context.Background()
+	t.Run("Create user and check that user exisr", func(t *testing.T) {
+		user := models.User{
+			Login:        strPtr("billy"),
+			Email:        strPtr("billy@test.local"),
+			PasswordHash: strPtr("***1234***"),
+		}
+		id, err := repo.CreateUser(ctx, user)
+		if err != nil {
+			t.Error(err.Error())
+		}
+		exists := repo.Exists(ctx, id)
+		assert.True(t, exists)
 	})
 }

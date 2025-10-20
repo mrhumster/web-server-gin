@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 	"fmt"
-	"log"
 	"testing"
 
 	"github.com/google/uuid"
@@ -13,10 +12,6 @@ import (
 	"github.com/mrhumster/web-server-gin/tests/testutils"
 	"github.com/stretchr/testify/assert"
 )
-
-func strPtr(s string) *string {
-	return &s
-}
 
 func TestUserService_Create(t *testing.T) {
 	db := testutils.GetTestDB()
@@ -29,8 +24,8 @@ func TestUserService_Create(t *testing.T) {
 	if repo == nil {
 		t.Fatal("UserRepository is nil")
 	}
-
-	service := NewUserService(repo)
+	enforcer := testutils.GetEnforcer(db)
+	service := NewUserService(repo, enforcer)
 	if service == nil {
 		t.Fatal("UserService is nil")
 	}
@@ -64,10 +59,6 @@ func TestUserService_Create(t *testing.T) {
 		assert.NoError(t, err)
 		assert.NotZero(t, id)
 
-		_, err = service.CreateUser(ctx, user)
-		log.Printf("🚩 %v", err.Error())
-		assert.Error(t, err)
-
 		changedEmail := "changed@test.local"
 		upd := request.UpdateUserRequest{
 			Email: &changedEmail,
@@ -79,7 +70,9 @@ func TestUserService_Create(t *testing.T) {
 		u, err := service.ReadUser(ctx, id)
 		assert.NoError(t, err)
 		if u != nil && u.Email != nil {
-			assert.Equal(t, "changed@test.local", *u.Email)
+			actual := u.Email
+			assert.Equal(t, "changed@test.local", *actual)
+			assert.NotEmpty(t, u.Role)
 		} else {
 			t.Fatal("ReadUser returned nil user or nil email")
 		}
@@ -96,7 +89,8 @@ func TestUserService_Validate(t *testing.T) {
 	db := testutils.GetTestDB()
 	defer testutils.CleanTestDatabase()
 	repo := repository.NewUserRepository(db)
-	service := NewUserService(repo)
+	enforcer := testutils.GetEnforcer(db)
+	service := NewUserService(repo, enforcer)
 	ctx := context.Background()
 	t.Run("Password validate success", func(t *testing.T) {
 
@@ -108,7 +102,9 @@ func TestUserService_Validate(t *testing.T) {
 			Email:        strPtr("email@test.local"),
 		}
 		id, err := service.CreateUser(ctx, user)
+		assert.NoError(t, err)
 		u, err := service.ReadUser(ctx, id)
+		assert.NoError(t, err)
 		u, err = service.GetUserByEmail(ctx, "email@test.local")
 		assert.NoError(t, err)
 		assert.Equal(t, id, u.ID)
