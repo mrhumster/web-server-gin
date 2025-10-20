@@ -16,8 +16,9 @@ type Database struct {
 }
 
 type Server struct {
-	ServerAddr string
-	JwtSecret  string
+	ServerAddr  string
+	JwtSecret   string
+	CasbinModel string
 }
 
 type Config struct {
@@ -37,8 +38,9 @@ func LoadConfig() Config {
 			TimeZone: "UTC",
 		},
 		Server: Server{
-			ServerAddr: os.Getenv("SERVER_ADDR"),
-			JwtSecret:  os.Getenv("JWT_SECRET"),
+			ServerAddr:  os.Getenv("SERVER_ADDR"),
+			JwtSecret:   os.Getenv("JWT_SECRET"),
+			CasbinModel: os.Getenv("CASBIN_MODEL"),
 		},
 	}
 }
@@ -73,8 +75,9 @@ func TestConfig() Config {
 			TimeZone: "UTC",
 		},
 		Server: Server{
-			ServerAddr: getEnv("TEST_SERVER_ADDR", ":8080"),
-			JwtSecret:  getEnv("TEST_JWT_SECRET", "jwt-secret-jwt-secret"),
+			ServerAddr:  getEnv("TEST_SERVER_ADDR", ":8080"),
+			JwtSecret:   getEnv("TEST_JWT_SECRET", "jwt-secret-jwt-secret"),
+			CasbinModel: getEnv("TEST_CASBIN_MODEL", "../config/model.conf"),
 		},
 	}
 

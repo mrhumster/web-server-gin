@@ -42,7 +42,7 @@ func SetupRoutes(db *gorm.DB, mode string) *gin.Engine {
 		panic(fmt.Sprintf("failed to initialize casbin adapter: %v", err))
 	}
 
-	enforcer, err := casbin.NewEnforcer("../config/model.conf", adapter)
+	enforcer, err := casbin.NewEnforcer(cfg.Server.CasbinModel, adapter)
 	if err != nil {
 		log.Printf("⚠️ Casbin Load Error, %s", err.Error())
 		panic("⚠️ Error loading roles config")

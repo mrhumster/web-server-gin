@@ -30,6 +30,8 @@ spec:
               value: "5432"
             - name: DB_NAME
               value: "database1"
+            - name: CASBIN_MODEL
+              value: "/app/config/model.conf"
             - name: DB_PASS
               valueFrom:
                 secretKeyRef:
