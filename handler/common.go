@@ -3,9 +3,12 @@ package handler
 import (
 	"errors"
 	"fmt"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
+	"github.com/mrhumster/web-server-gin/dto/response"
+	"github.com/mrhumster/web-server-gin/service"
 )
 
 func getErrorMessage(fieldError validator.FieldError) string {
@@ -53,4 +56,23 @@ func GetUserEmailFromContext(c *gin.Context) (string, error) {
 	}
 
 	return emailStr, nil
+}
+
+type CommonHandler struct {
+	tokenService *service.TokenService
+}
+
+func NewCommonHandler(tokenService *service.TokenService) *CommonHandler {
+	return &CommonHandler{
+		tokenService: tokenService,
+	}
+}
+
+func (h *CommonHandler) GetPublicKey(c *gin.Context) {
+	publicKeyPEM, err := h.tokenService.GetPublicKeyPEM()
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, response.ErrorResponse("failed to get public key"))
+		return
+	}
+	c.Data(http.StatusOK, "application/x-pem-file", []byte(publicKeyPEM))
 }

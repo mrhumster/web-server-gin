@@ -57,6 +57,7 @@ func SetupRoutes(db *gorm.DB, mode string) *gin.Engine {
 	}
 	userHandler := handler.NewUserHandler(userService)
 	authHandler := handler.NewAuthHandler(userService, tokenService, cfg.JwtSecret)
+	commonHandler := handler.NewCommonHandler(tokenService)
 
 	AddPolicyIfNotExists("admin", "*", "*", enforcer)
 	AddPolicyIfNotExists("member", "users", "read", enforcer)
@@ -65,6 +66,7 @@ func SetupRoutes(db *gorm.DB, mode string) *gin.Engine {
 	r.POST("/api/login", authHandler.Login)
 	r.GET("/api/logout", authHandler.Logout)
 	r.POST("/api/users", userHandler.CreateUser)
+	r.GET("/api/auth/public-key", commonHandler.GetPublicKey)
 
 	auth := r.Group("/api", middleware.AuthMiddleware(tokenService))
 	{
