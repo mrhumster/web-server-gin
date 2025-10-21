@@ -294,20 +294,25 @@ func TestUserHandler_Response_IncludeAllFields(t *testing.T) {
 func TestUserHandler_UpdateUser(t *testing.T) {
 	router, _ := setupTest()
 	defer testutils.CleanTestDatabase()
+
 	resp := createUserRequest(router, "testuser1", "password", "testuser1@test.local")
 	loginResponse, _ := AuthByLogin(router, "testuser1@test.local", "password")
-	var body, updatedBody map[string]interface{}
+
+	var body, updatedBody map[string]any
 	json.Unmarshal(resp.Body.Bytes(), &body)
+
 	var userUpdate request.UpdateUserRequest
-	userUpdate.Name = strPtr("Larry")
-	userUpdate.LastName = strPtr("Coat")
+
+	name := "Larry"
+	lastNmae := "Coat"
+	userUpdate.Name = &name
+	userUpdate.LastName = &lastNmae
+
 	userJson, _ := json.Marshal(userUpdate)
-	req, _ := http.NewRequest(
-		"PATCH",
-		fmt.Sprintf("/api/users/%.0f", body["id"]),
-		bytes.NewBuffer(userJson),
-	)
+
+	req, _ := http.NewRequest("PATCH", fmt.Sprintf("/api/users/%.0f", body["id"]), bytes.NewBuffer(userJson))
 	req.Header.Set("Authorization", loginResponse.GetTokenAsBearerHeader())
+	log.Printf("⚠️ %#v", loginResponse)
 	resp = httptest.NewRecorder()
 	router.ServeHTTP(resp, req)
 	json.Unmarshal(resp.Body.Bytes(), &updatedBody)

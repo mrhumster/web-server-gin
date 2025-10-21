@@ -16,7 +16,7 @@ import (
 var TestDB *gorm.DB
 
 func InitTestDB() *gorm.DB {
-	cfg := config.TestConfig()
+	cfg, _ := config.TestConfig()
 	var err error
 
 	TestDB, err := gorm.Open(postgres.Open(cfg.GetDsn()), &gorm.Config{

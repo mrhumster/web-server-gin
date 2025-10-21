@@ -9,7 +9,7 @@ import (
 
 func TestSetupDatabase(t *testing.T) {
 	t.Run("should create database connection with valid config", func(t *testing.T) {
-		cfg := config.TestConfig()
+		cfg, _ := config.TestConfig()
 
 		assert.NotPanics(t, func() {
 			db := SetupDatabase(cfg)

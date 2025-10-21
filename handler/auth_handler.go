@@ -2,10 +2,8 @@ package handler
 
 import (
 	"net/http"
-	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/golang-jwt/jwt/v5"
 	"github.com/mrhumster/web-server-gin/dto/request"
 	"github.com/mrhumster/web-server-gin/dto/response"
 	"github.com/mrhumster/web-server-gin/models"
@@ -13,21 +11,23 @@ import (
 )
 
 type AuthHandler struct {
-	UserService *service.UserService
-	JwtSecret   string
+	UserService  *service.UserService
+	TokenService *service.TokenService
+	JwtSecret    string
 }
 
-func NewAuthHandler(userService *service.UserService, jwtSecret string) *AuthHandler {
+func NewAuthHandler(userService *service.UserService, tokenService *service.TokenService, jwtSecret string) *AuthHandler {
 	return &AuthHandler{
-		UserService: userService,
-		JwtSecret:   jwtSecret,
+		UserService:  userService,
+		TokenService: tokenService,
+		JwtSecret:    jwtSecret,
 	}
 }
 
 func (a *AuthHandler) Login(c *gin.Context) {
 	var (
 		req request.LoginRequest
-		t   *jwt.Token
+		t   string
 		u   *models.User
 		err error
 	)
@@ -40,23 +40,16 @@ func (a *AuthHandler) Login(c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusUnauthorized, response.ErrorResponse(err.Error()))
 		return
 	}
-	t = jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"user_id": float64(u.ID),
-		"role":    &u.Role,
-		"email":   &u.Email,
-		"exp":     time.Now().Add(time.Hour * 24).Unix(),
-	})
-	tokenString, err := t.SignedString([]byte(a.JwtSecret))
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, response.ErrorResponse("could not generate token"))
-		return
+
+	if t, err = a.TokenService.GenerateToken(u); err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, response.ErrorResponse("failed to generate token"))
 	}
+
 	var user response.UserResponse
 	user.FillInTheModel(u)
 	c.JSON(http.StatusOK, response.LoginResponse{
-		Token:   tokenString,
-		Expires: time.Now().Add(time.Hour * 24),
-		User:    user,
+		Token: t,
+		User:  user,
 	})
 }
 

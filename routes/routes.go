@@ -32,9 +32,9 @@ func SetupRoutes(db *gorm.DB, mode string) *gin.Engine {
 
 	r := gin.Default()
 
-	cfg := config.LoadConfig()
+	cfg, _ := config.LoadConfig()
 	if mode == "test" || mode == "debug" {
-		cfg = config.TestConfig()
+		cfg, _ = config.TestConfig()
 	}
 
 	adapter, err := gormadapter.NewAdapterByDB(db)
@@ -50,8 +50,13 @@ func SetupRoutes(db *gorm.DB, mode string) *gin.Engine {
 
 	userRepo := repository.NewUserRepository(db)
 	userService := service.NewUserService(userRepo, enforcer)
+	tokenService, err := service.NewTokenService(&cfg.JWT)
+	if err != nil {
+		fmt.Printf("⚠️ SetupRoutes: %v", err)
+		panic("Error create new token service")
+	}
 	userHandler := handler.NewUserHandler(userService)
-	authHandler := handler.NewAuthHandler(userService, cfg.JwtSecret)
+	authHandler := handler.NewAuthHandler(userService, tokenService, cfg.JwtSecret)
 
 	AddPolicyIfNotExists("admin", "*", "*", enforcer)
 	AddPolicyIfNotExists("member", "users", "read", enforcer)
@@ -61,7 +66,7 @@ func SetupRoutes(db *gorm.DB, mode string) *gin.Engine {
 	r.GET("/api/logout", authHandler.Logout)
 	r.POST("/api/users", userHandler.CreateUser)
 
-	auth := r.Group("/api", middleware.AuthMiddleware(cfg.JwtSecret))
+	auth := r.Group("/api", middleware.AuthMiddleware(tokenService))
 	{
 		auth.GET("/users", middleware.Authorize("users", "read", enforcer), userHandler.ReadUsers)
 		auth.GET("/users/:id", middleware.Authorize("users", "read", enforcer), userHandler.ReadUser)

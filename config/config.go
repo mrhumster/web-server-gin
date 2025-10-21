@@ -21,13 +21,19 @@ type Server struct {
 	CasbinModel string
 }
 
+type JWT struct {
+	PrivateKeyPath string `mapstructure:"jwt_private_key_path"`
+	PublicKeyPath  string `mapstructure:"jwt_public_key_path"`
+	Issuer         string `mapstructure:"jwt_issuer"`
+}
 type Config struct {
 	Database
-	Server
+	Server `mapstructure:"server"`
+	JWT    `mapstructure:"jwt"`
 }
 
-func LoadConfig() Config {
-	return Config{
+func LoadConfig() (*Config, error) {
+	cfg := &Config{
 		Database: Database{
 			Host:     os.Getenv("DB_HOST"),
 			Port:     os.Getenv("DB_PORT"),
@@ -42,7 +48,19 @@ func LoadConfig() Config {
 			JwtSecret:   os.Getenv("JWT_SECRET"),
 			CasbinModel: os.Getenv("CASBIN_MODEL"),
 		},
+		JWT: JWT{
+			PrivateKeyPath: getEnv("JWT_PRIVATE_KEY_PATH", "/app/config/keys/private.pem"),
+			PublicKeyPath:  getEnv("JWT_PUBLIC_KEY_PATH", "/app/config/keys/public.pem"),
+			Issuer:         getEnv("JWT_ISSUER", "auth-service"),
+		},
 	}
+	if _, err := os.Stat(cfg.JWT.PrivateKeyPath); os.IsNotExist(err) {
+		return nil, fmt.Errorf("private key file not found: %s", cfg.JWT.PrivateKeyPath)
+	}
+	if _, err := os.Stat(cfg.JWT.PublicKeyPath); os.IsNotExist(err) {
+		return nil, fmt.Errorf("public key file not found: %s", cfg.JWT.PublicKeyPath)
+	}
+	return cfg, nil
 }
 
 func (config *Config) GetDsn() string {
@@ -63,8 +81,8 @@ func getEnv(key, defaultValue string) string {
 	return defaultValue
 }
 
-func TestConfig() Config {
-	return Config{
+func TestConfig() (*Config, error) {
+	return &Config{
 		Database: Database{
 			Host:     getEnv("TEST_DB_HOST", "localhost"),
 			Port:     getEnv("TEST_DB_PORT", "5432"),
@@ -79,6 +97,10 @@ func TestConfig() Config {
 			JwtSecret:   getEnv("TEST_JWT_SECRET", "jwt-secret-jwt-secret"),
 			CasbinModel: getEnv("TEST_CASBIN_MODEL", "../config/model.conf"),
 		},
-	}
-
+		JWT: JWT{
+			PrivateKeyPath: getEnv("JWT_PRIVATE_KEY_PATH", "../config/keys/private.pem"),
+			PublicKeyPath:  getEnv("JWT_PUBLIC_KEY_PATH", "../config/keys/public.pem"),
+			Issuer:         getEnv("JWT_ISSUER", "auth-service"),
+		},
+	}, nil
 }

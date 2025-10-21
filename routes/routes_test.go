@@ -9,7 +9,7 @@ import (
 )
 
 func TestRoutes(t *testing.T) {
-	cfg := config.TestConfig()
+	cfg, _ := config.TestConfig()
 	db := database.SetupDatabase(cfg)
 	SetupRoutes(db, "test")
 	assert.IsType(t, &gorm.DB{}, db)

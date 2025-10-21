@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-func SetupDatabase(cfg config.Config) *gorm.DB {
+func SetupDatabase(cfg *config.Config) *gorm.DB {
 	db, err := gorm.Open(postgres.Open(cfg.GetDsn()), &gorm.Config{})
 	if err != nil {
 		panic("⚠️ GORM not open DB")

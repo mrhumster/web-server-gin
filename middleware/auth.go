@@ -8,62 +8,25 @@ import (
 
 	"github.com/casbin/casbin/v2"
 	"github.com/gin-gonic/gin"
-	"github.com/golang-jwt/jwt/v5"
 	"github.com/mrhumster/web-server-gin/dto/response"
+	"github.com/mrhumster/web-server-gin/service"
 )
 
-func AuthMiddleware(jwtSecret string) gin.HandlerFunc {
+func AuthMiddleware(tokenService *service.TokenService) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		authHeader := c.GetHeader("Authorization")
-		if authHeader == "" {
-			c.JSON(http.StatusUnauthorized, response.ErrorResponse("Authorization header required"))
-			c.Abort()
-			return
-		}
-		parts := strings.Split(authHeader, " ")
-		if len(parts) != 2 || parts[0] != "Bearer" {
-			c.JSON(http.StatusUnauthorized, response.ErrorResponse("Authorization header format must be Bearer {token}"))
-			c.Abort()
-			return
-		}
-		tokenString := parts[1]
-		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-			return []byte(jwtSecret), nil
-		})
-		if err != nil || !token.Valid {
-			c.JSON(http.StatusUnauthorized, response.ErrorResponse("Invalid token"))
-			c.Abort()
-			return
-		}
-		claims, ok := token.Claims.(jwt.MapClaims)
-		if !ok {
+
+		token := extractToken(c.Request)
+		claims, err := tokenService.ValidateToken(token)
+		log.Printf("⚠️ AuthMiddleware: CLAIM ERROR %v %v", err, claims)
+		if err != nil {
 			c.JSON(http.StatusUnauthorized, response.ErrorResponse("invalid token claims"))
 			c.Abort()
 			return
 		}
 
-		userID, ok := claims["user_id"].(float64)
-		if !ok {
-			c.JSON(http.StatusUnauthorized, response.ErrorResponse("invalid user id in token"))
-			c.Abort()
-			return
-		}
-
-		userEmail, ok := claims["email"].(string)
-		if !ok {
-			c.JSON(http.StatusUnauthorized, response.ErrorResponse("invalid email in token"))
-			c.Abort()
-			return
-		}
-
-		userRole, ok := claims["role"].(string)
-		if !ok {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, response.ErrorResponse("invalid role in token"))
-			return
-		}
-		c.Set("userID", uint64(userID))
-		c.Set("userEmail", userEmail)
-		c.Set("role", userRole)
+		c.Set("userID", claims.UserID)
+		c.Set("userEmail", claims.Email)
+		c.Set("claims", claims)
 		c.Next()
 	}
 }
@@ -93,4 +56,16 @@ func Authorize(obj string, act string, enforcer *casbin.Enforcer) gin.HandlerFun
 
 		c.Next()
 	}
+}
+
+func extractToken(r *http.Request) string {
+	authHeader := r.Header.Get("Authorization")
+	if authHeader == "" {
+		return ""
+	}
+	parts := strings.Split(authHeader, " ")
+	if len(parts) != 2 || parts[0] != "Bearer" {
+		return ""
+	}
+	return parts[1]
 }

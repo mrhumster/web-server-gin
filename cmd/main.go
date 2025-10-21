@@ -15,7 +15,7 @@ import (
 )
 
 func main() {
-	cfg := config.LoadConfig()
+	cfg, _ := config.LoadConfig()
 	db := database.SetupDatabase(cfg)
 	r := routes.SetupRoutes(db, "qa")
 

@@ -2,6 +2,8 @@ package handler
 
 import (
 	"errors"
+	"fmt"
+
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 )
@@ -25,17 +27,18 @@ func getErrorMessage(fieldError validator.FieldError) string {
 	}
 }
 
-func GetUserIDFromContext(c *gin.Context) (uint64, error) {
+func GetUserIDFromContext(c *gin.Context) (*string, error) {
 	userID, exists := c.Get("userID")
 	if !exists {
-		return 0, errors.New("user ID not found in context")
+		return nil, errors.New("user ID not found in context")
 	}
-	id, ok := userID.(uint64)
+	fmt.Printf("⚠️ GetUserIDFromContext: %v %t", userID, userID)
+	id, ok := userID.(string)
 	if !ok {
-		return 0, errors.New("invalid user ID type in context")
+		return nil, errors.New("invalid user ID type in context")
 	}
 
-	return id, nil
+	return &id, nil
 }
 
 func GetUserEmailFromContext(c *gin.Context) (string, error) {
