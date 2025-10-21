@@ -92,6 +92,5 @@ func Authorize(obj string, act string, enforcer *casbin.Enforcer) gin.HandlerFun
 		}
 
 		c.Next()
-
 	}
 }
