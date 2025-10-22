@@ -114,3 +114,14 @@ func (r *UserRepository) Exists(ctx context.Context, id uint) bool {
 	u, _ := r.ReadUserByID(ctx, id)
 	return u != nil
 }
+
+func (r *UserRepository) UpdateTokenVersion(ctx context.Context, userID uint64, version string) error {
+	var userForUpdate *models.User
+	result := r.db.WithContext(ctx).First(&userForUpdate, userID)
+	if result.Error != nil {
+		return result.Error
+	}
+	userForUpdate.TokenVersion = &version
+	result = r.db.WithContext(ctx).Save(&userForUpdate)
+	return result.Error
+}

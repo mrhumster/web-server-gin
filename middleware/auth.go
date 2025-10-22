@@ -16,7 +16,7 @@ func AuthMiddleware(tokenService *service.TokenService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 
 		token := extractToken(c.Request)
-		claims, err := tokenService.ValidateToken(token)
+		claims, err := tokenService.ValidateAccessToken(token)
 		log.Printf("⚠️ AuthMiddleware: CLAIM ERROR %v %v", err, claims)
 		if err != nil {
 			c.JSON(http.StatusUnauthorized, response.ErrorResponse("invalid token claims"))
@@ -25,7 +25,6 @@ func AuthMiddleware(tokenService *service.TokenService) gin.HandlerFunc {
 		}
 
 		c.Set("userID", claims.UserID)
-		c.Set("userEmail", claims.Email)
 		c.Set("claims", claims)
 		c.Next()
 	}

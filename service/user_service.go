@@ -96,3 +96,7 @@ func (s *UserService) ValidateUser(ctx context.Context, email, password string) 
 	}
 	return nil, errors.New("invalid password")
 }
+
+func (s *UserService) UpdateTokenVersion(ctx context.Context, userID uint64, version string) error {
+	return s.repo.UpdateTokenVersion(ctx, userID, version)
+}

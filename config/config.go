@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"os"
+	"time"
 )
 
 type Database struct {
@@ -22,9 +23,13 @@ type Server struct {
 }
 
 type JWT struct {
-	PrivateKeyPath string `mapstructure:"jwt_private_key_path"`
-	PublicKeyPath  string `mapstructure:"jwt_public_key_path"`
-	Issuer         string `mapstructure:"jwt_issuer"`
+	AccessPrivateKey   string
+	AccessPublicKey    string
+	RefreshPrivateKey  string
+	RefreshPublicKey   string
+	AccessTokenExpiry  time.Duration
+	RefreshTokenExpiry time.Duration
+	Issuer             string `mapstructure:"jwt_issuer"`
 }
 type Config struct {
 	Database
@@ -33,6 +38,16 @@ type Config struct {
 }
 
 func LoadConfig() (*Config, error) {
+
+	accessTokenExpiry, err := time.ParseDuration(getEnv("JWT_ACCESS_TOKEN_EXPIRY", "15m"))
+	if err != nil {
+		return nil, fmt.Errorf("Config error. Plase set ENV JWT_ACCESS_TOKEN_EXPIRY. %v", err)
+	}
+	refreshTokenExpiry, err := time.ParseDuration(getEnv("JWT_REFRESH_TOKEN_EXPIRY", "7d"))
+	if err != nil {
+		return nil, fmt.Errorf("Config error. Plase set ENV JWT_REFRESH_TOKEN_EXPIRY. %v", err)
+	}
+
 	cfg := &Config{
 		Database: Database{
 			Host:     os.Getenv("DB_HOST"),
@@ -49,16 +64,14 @@ func LoadConfig() (*Config, error) {
 			CasbinModel: os.Getenv("CASBIN_MODEL"),
 		},
 		JWT: JWT{
-			PrivateKeyPath: getEnv("JWT_PRIVATE_KEY_PATH", "/app/config/keys/private.pem"),
-			PublicKeyPath:  getEnv("JWT_PUBLIC_KEY_PATH", "/app/config/keys/public.pem"),
-			Issuer:         getEnv("JWT_ISSUER", "auth-service"),
+			AccessPrivateKey:   getEnv("JWT_ACCESS_PRIVATE_KEY", ""),
+			AccessPublicKey:    getEnv("JWT_ACCESS_PUBLIC_KEY", ""),
+			RefreshPrivateKey:  getEnv("JWT_REFRESH_PRIVATE_KEY", ""),
+			RefreshPublicKey:   getEnv("JWT_REFRESH_PUBLIC_KEY", ""),
+			AccessTokenExpiry:  accessTokenExpiry,
+			RefreshTokenExpiry: refreshTokenExpiry,
+			Issuer:             getEnv("JWT_ISSUER", "auth-service"),
 		},
-	}
-	if _, err := os.Stat(cfg.JWT.PrivateKeyPath); os.IsNotExist(err) {
-		return nil, fmt.Errorf("private key file not found: %s", cfg.JWT.PrivateKeyPath)
-	}
-	if _, err := os.Stat(cfg.JWT.PublicKeyPath); os.IsNotExist(err) {
-		return nil, fmt.Errorf("public key file not found: %s", cfg.JWT.PublicKeyPath)
 	}
 	return cfg, nil
 }
@@ -82,6 +95,15 @@ func getEnv(key, defaultValue string) string {
 }
 
 func TestConfig() (*Config, error) {
+	accessTokenExpiry, err := time.ParseDuration(getEnv("JWT_ACCESS_TOKEN_EXPIRY", "15m"))
+	if err != nil {
+		return nil, fmt.Errorf("Config error. Plase set ENV JWT_ACCESS_TOKEN_EXPIRY. %v", err)
+	}
+	refreshTokenExpiry, err := time.ParseDuration(getEnv("JWT_REFRESH_TOKEN_EXPIRY", "7d"))
+	if err != nil {
+		return nil, fmt.Errorf("Config error. Plase set ENV JWT_REFRESH_TOKEN_EXPIRY. %v", err)
+	}
+
 	return &Config{
 		Database: Database{
 			Host:     getEnv("TEST_DB_HOST", "localhost"),
@@ -98,9 +120,13 @@ func TestConfig() (*Config, error) {
 			CasbinModel: getEnv("TEST_CASBIN_MODEL", "../config/model.conf"),
 		},
 		JWT: JWT{
-			PrivateKeyPath: getEnv("JWT_PRIVATE_KEY_PATH", "../config/keys/private.pem"),
-			PublicKeyPath:  getEnv("JWT_PUBLIC_KEY_PATH", "../config/keys/public.pem"),
-			Issuer:         getEnv("JWT_ISSUER", "auth-service"),
+			AccessPrivateKey:   getEnv("JWT_ACCESS_PRIVATE_KEY", ""),
+			AccessPublicKey:    getEnv("JWT_ACCESS_PUBLIC_KEY", ""),
+			RefreshPrivateKey:  getEnv("JWT_REFRESH_PRIVATE_KEY", ""),
+			RefreshPublicKey:   getEnv("JWT_REFRESH_PUBLIC_KEY", ""),
+			AccessTokenExpiry:  accessTokenExpiry,
+			RefreshTokenExpiry: refreshTokenExpiry,
+			Issuer:             getEnv("JWT_ISSUER", "auth-service"),
 		},
 	}, nil
 }

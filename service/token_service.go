@@ -6,7 +6,6 @@ import (
 	"encoding/pem"
 	"errors"
 	"fmt"
-	"os"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -15,76 +14,122 @@ import (
 )
 
 type TokenService struct {
-	privateKey *rsa.PrivateKey
-	publicKey  *rsa.PublicKey
-	issuer     string
+	accessPrivateKey  *rsa.PrivateKey
+	accessPublicKey   *rsa.PublicKey
+	refreshPrivateKey *rsa.PrivateKey
+	refreshPublicKey  *rsa.PublicKey
+	accessExpiry      time.Duration
+	refreshExpiry     time.Duration
+	issuer            string
 }
 
-func NewTokenService(jwt *config.JWT) (*TokenService, error) {
-	privateKey, err := loadPrivateKey(jwt.PrivateKeyPath)
+func NewTokenService(cfg *config.JWT) (*TokenService, error) {
+	accessPrivateKey, err := jwt.ParseRSAPrivateKeyFromPEM([]byte(cfg.AccessPrivateKey))
 	if err != nil {
-		return nil, fmt.Errorf("NewTokenSrvice: error load private key: %w", err)
+		return nil, fmt.Errorf("parse access private key: %w", err)
 	}
-	publicKey, err := loadPublicKey(jwt.PublicKeyPath)
+	accessPublicKey, err := jwt.ParseRSAPublicKeyFromPEM([]byte(cfg.AccessPublicKey))
 	if err != nil {
-		return nil, fmt.Errorf("NewTokenService: error load public key: %w", err)
+		return nil, fmt.Errorf("parse access public key: %w", err)
+	}
+	refreshPrivateKey, err := jwt.ParseRSAPrivateKeyFromPEM([]byte(cfg.RefreshPrivateKey))
+	if err != nil {
+		return nil, fmt.Errorf("parse refresh private key: %w", err)
+	}
+	refreshPublicKey, err := jwt.ParseRSAPublicKeyFromPEM([]byte(cfg.RefreshPublicKey))
+	if err != nil {
+		return nil, fmt.Errorf("parse refresh public key: %w", err)
 	}
 	return &TokenService{
-		privateKey: privateKey,
-		publicKey:  publicKey,
-		issuer:     jwt.Issuer,
+		accessPrivateKey:  accessPrivateKey,
+		accessPublicKey:   accessPublicKey,
+		refreshPrivateKey: refreshPrivateKey,
+		refreshPublicKey:  refreshPublicKey,
+		accessExpiry:      cfg.AccessTokenExpiry,
+		refreshExpiry:     cfg.RefreshTokenExpiry,
+		issuer:            cfg.Issuer,
 	}, nil
 }
 
-func (s *TokenService) GenerateToken(user *models.User) (string, error) {
-	claims := &models.Claims{
+func (s *TokenService) GenerateToken(user *models.User) (*models.TokenPair, error) {
+	accessExpiresAt := time.Now().Add(s.accessExpiry)
+	accessClaims := &models.AccessClaims{
 		UserID:   fmt.Sprintf("%d", user.ID),
 		Username: *user.Login,
-		Email:    *user.Email,
+		Role:     *user.Role,
 		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(24 * time.Hour)),
+			ExpiresAt: jwt.NewNumericDate(accessExpiresAt),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
 			Issuer:    s.issuer,
 		},
 	}
-	token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
-	fmt.Printf("🔐 Generating token with method: %v\n", token.Method)
-	fmt.Printf("🔐 Private key: %v\n", s.privateKey != nil)
-	tokenString, err := token.SignedString(s.privateKey)
+	accessToken := jwt.NewWithClaims(jwt.SigningMethodRS256, accessClaims)
+	accessTokenString, err := accessToken.SignedString(s.accessPrivateKey)
 	if err != nil {
-		fmt.Printf("❌ Error signing token: %v\n", err)
-		return "", err
+		return nil, err
+	}
+	refreshExpiresAt := time.Now().Add(s.refreshExpiry)
+	refreshClaims := &models.RefreshClaims{
+		UserID:       fmt.Sprintf("%d", user.ID),
+		TokenVersion: *user.TokenVersion,
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(refreshExpiresAt),
+			IssuedAt:  jwt.NewNumericDate(time.Now()),
+			Issuer:    s.issuer,
+		},
+	}
+	refreshToken := jwt.NewWithClaims(jwt.SigningMethodRS256, refreshClaims)
+	refreshTokenString, err := refreshToken.SignedString(s.refreshPrivateKey)
+	if err != nil {
+		return nil, err
 	}
 
-	fmt.Printf("✅ Token generated successfully\n")
-	return tokenString, nil
+	return &models.TokenPair{
+		AccessToken:  accessTokenString,
+		RefreshToken: refreshTokenString,
+		ExpiresIn:    int64(s.accessExpiry.Seconds()),
+		TokenType:    "bearer",
+	}, nil
 }
 
-func (s *TokenService) ValidateToken(tokenString string) (*models.Claims, error) {
-	fmt.Printf("🔍 Validating token...\n")
-	fmt.Printf("🔍 Public key available: %v\n", s.publicKey != nil)
-	token, err := jwt.ParseWithClaims(tokenString, &models.Claims{}, func(token *jwt.Token) (interface{}, error) {
-		fmt.Printf("🔍 Token signing method: %v\n", token.Method)
-		fmt.Printf("🔍 Expected method: %v\n", jwt.SigningMethodRS256)
+func (s *TokenService) ValidateAccessToken(tokenString string) (*models.AccessClaims, error) {
+	token, err := jwt.ParseWithClaims(tokenString, &models.AccessClaims{}, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodRSA); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
-		return s.publicKey, nil
+		return s.accessPublicKey, nil
 	})
 	if err != nil {
-		fmt.Printf("❌ Token validation error: %v\n", err)
 		return nil, err
 	}
-	if claims, ok := token.Claims.(*models.Claims); ok && token.Valid {
-		fmt.Printf("✅ Token valid for user: %s\n", claims.Username)
+	if claims, ok := token.Claims.(*models.AccessClaims); ok && token.Valid {
 		return claims, nil
 	}
-	fmt.Printf("❌ Invalid token claims\n")
 	return nil, errors.New("invalid token")
 }
 
+func (s *TokenService) ValidateRefreshToken(tokenString string) (*models.RefreshClaims, error) {
+	token, err := jwt.ParseWithClaims(tokenString, &models.RefreshClaims{}, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodRSA); !ok {
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+		}
+		return s.refreshPublicKey, nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	if claims, ok := token.Claims.(*models.RefreshClaims); ok && token.Valid {
+		return claims, nil
+	}
+	return nil, errors.New("invalid token")
+}
+
+func (s *TokenService) GetAccessPublicKey() *rsa.PublicKey {
+	return s.accessPublicKey
+}
+
 func (s *TokenService) GetPublicKeyPEM() (string, error) {
-	pubKeyBytes, err := x509.MarshalPKIXPublicKey(s.publicKey)
+	pubKeyBytes, err := x509.MarshalPKIXPublicKey(s.refreshPublicKey)
 	if err != nil {
 		return "", err
 	}
@@ -97,47 +142,10 @@ func (s *TokenService) GetPublicKeyPEM() (string, error) {
 	return string(pubKeyPEM), nil
 }
 
-func loadPrivateKey(path string) (*rsa.PrivateKey, error) {
-	keyData, err := os.ReadFile(path)
-	if err != nil {
-		return nil, err
-	}
-	block, _ := pem.Decode(keyData)
-	if block == nil {
-		return nil, errors.New("failed to parse PEM block containing private key")
-	}
-	privateKey, err := x509.ParsePKCS1PrivateKey(block.Bytes)
-	if err != nil {
-		key, err := x509.ParsePKCS8PrivateKey(block.Bytes)
-		if err != nil {
-			return nil, err
-		}
-		rsaKey, ok := key.(*rsa.PrivateKey)
-		if !ok {
-			return nil, errors.New("not RSA private key")
-		}
-		return rsaKey, nil
-	}
-	return privateKey, nil
+func (s *TokenService) GetRefreshExpiry() time.Duration {
+	return s.refreshExpiry
 }
 
-func loadPublicKey(path string) (*rsa.PublicKey, error) {
-	keyData, err := os.ReadFile(path)
-	if err != nil {
-		return nil, err
-	}
-	block, _ := pem.Decode(keyData)
-	if block == nil {
-		return nil, errors.New("failed to parse PEM block containing public key")
-	}
-	pub, err := x509.ParsePKIXPublicKey(block.Bytes)
-	if err != nil {
-		return nil, err
-	}
-
-	publicKey, ok := pub.(*rsa.PublicKey)
-	if !ok {
-		return nil, errors.New("not RSA public key")
-	}
-	return publicKey, nil
+func (s *TokenService) GetAccessExpiry() time.Duration {
+	return s.accessExpiry
 }

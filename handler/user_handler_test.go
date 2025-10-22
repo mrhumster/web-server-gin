@@ -57,7 +57,7 @@ func LoginAndGetToken(router *gin.Engine, email, password string) string {
 	router.ServeHTTP(resp, req)
 	var response response.LoginResponse
 	json.Unmarshal(resp.Body.Bytes(), &response)
-	return response.Token
+	return response.AccessToken
 }
 
 func TestUserHandler_Success(t *testing.T) {
