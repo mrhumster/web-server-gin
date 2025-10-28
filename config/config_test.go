@@ -15,8 +15,10 @@ func TestConfig_GetEnv(t *testing.T) {
 }
 
 func TestTestConfig(t *testing.T) {
-	cfg, _ := TestConfig()
-	assert.NotNil(t, cfg)
+	cfg, err := TestConfig()
+	if err != nil {
+		t.Errorf("Test config err: %v", err)
+	}
 	assert.NotEmpty(t, cfg.Database.Host)
 	assert.NotEmpty(t, cfg.Database.Name)
 	assert.NotEmpty(t, cfg.Server.ServerAddr)

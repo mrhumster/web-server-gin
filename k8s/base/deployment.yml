@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: web-server-gin
-          image: xomrkob/web-server-gin:1.1.45
+          image: xomrkob/web-server-gin:1.1.49
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
@@ -47,6 +47,27 @@ spec:
                 secretKeyRef:
                   name: go-app-secret
                   key: JWT_SECRET
+            - name: JWT_ACCESS_PRIVATE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: go-app-secret
+                  key: ACCESS_PRIVATE_KEY
+            - name: JWT_ACCESS_PUBLIC_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: go-app-secret
+                  key: ACCESS_PUBLIC_KEY
+            - name: JWT_REFRESH_PRIVATE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: go-app-secret
+                  key: REFRESH_PRIVATE_KEY
+            - name: JWT_REFRESH_PUBLIC_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: go-app-secret
+                  key: REFRESH_PUBLIC_KEY
+
           resources:
             requests:
               memory: "256Mi"

@@ -99,9 +99,29 @@ func TestConfig() (*Config, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Config error. Plase set ENV JWT_ACCESS_TOKEN_EXPIRY. %v", err)
 	}
-	refreshTokenExpiry, err := time.ParseDuration(getEnv("JWT_REFRESH_TOKEN_EXPIRY", "7d"))
+	refreshTokenExpiry, err := time.ParseDuration(getEnv("JWT_REFRESH_TOKEN_EXPIRY", "168h"))
 	if err != nil {
 		return nil, fmt.Errorf("Config error. Plase set ENV JWT_REFRESH_TOKEN_EXPIRY. %v", err)
+	}
+
+	accessPrivateKey, err := os.ReadFile("../config/keys/accessPrivate.pem")
+	if err != nil {
+		return nil, fmt.Errorf("Config error. AccessPrivateKey not read.")
+	}
+
+	accessPublicKey, err := os.ReadFile("../config/keys/accessPublic.pem")
+	if err != nil {
+		return nil, fmt.Errorf("Config error. AccessPublicKey not read.")
+	}
+
+	refreshPrivateKey, err := os.ReadFile("../config/keys/refreshPrivate.pem")
+	if err != nil {
+		return nil, fmt.Errorf("Config error. RefreshPrivateKey not read.")
+	}
+
+	refreshPublicKey, err := os.ReadFile("../config/keys/refreshPublic.pem")
+	if err != nil {
+		return nil, fmt.Errorf("Config error. RefreshPublicKey not read.")
 	}
 
 	return &Config{
@@ -120,10 +140,10 @@ func TestConfig() (*Config, error) {
 			CasbinModel: getEnv("TEST_CASBIN_MODEL", "../config/model.conf"),
 		},
 		JWT: JWT{
-			AccessPrivateKey:   getEnv("JWT_ACCESS_PRIVATE_KEY", ""),
-			AccessPublicKey:    getEnv("JWT_ACCESS_PUBLIC_KEY", ""),
-			RefreshPrivateKey:  getEnv("JWT_REFRESH_PRIVATE_KEY", ""),
-			RefreshPublicKey:   getEnv("JWT_REFRESH_PUBLIC_KEY", ""),
+			AccessPrivateKey:   string(accessPrivateKey),
+			AccessPublicKey:    string(accessPublicKey),
+			RefreshPrivateKey:  string(refreshPrivateKey),
+			RefreshPublicKey:   string(refreshPublicKey),
 			AccessTokenExpiry:  accessTokenExpiry,
 			RefreshTokenExpiry: refreshTokenExpiry,
 			Issuer:             getEnv("JWT_ISSUER", "auth-service"),

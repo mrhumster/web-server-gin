@@ -15,9 +15,15 @@ func TestTokenService_GenerateAndValidateToken(t *testing.T) {
 	cfg, _ := config.TestConfig()
 	service, _ := NewTokenService(&cfg.JWT)
 
+	login := "testuser"
+	email := "testuser@test.local"
+	role := "member"
+	tokenVersion := "1"
 	user := &models.User{
-		Login: strPtr("testuser"),
-		Email: strPtr("test@example.com"),
+		Login:        &login,
+		Email:        &email,
+		Role:         &role,
+		TokenVersion: &tokenVersion,
 	}
 
 	token, err := service.GenerateToken(user)
