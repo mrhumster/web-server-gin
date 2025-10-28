@@ -1,5 +1,5 @@
 FROM golang:1.25-alpine AS builder
-ARG VERSION=1.1.50
+ARG VERSION=1.1.52
 ARG BUILD_DATE=28.10.2025
 
 WORKDIR /app
@@ -13,7 +13,7 @@ RUN CGO_ENABLED=0 GOOS=linux go build \
   -o server ./cmd/main.go
 
 FROM alpine:3.18
-ARG VERSION=1.1.50
+ARG VERSION=1.1.52
 ARG BUILD_DATE=28.10.2025
 LABEL version=$VERSION \
   build-date=$BUILD_DATE \

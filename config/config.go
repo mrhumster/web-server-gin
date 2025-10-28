@@ -20,6 +20,7 @@ type Server struct {
 	ServerAddr  string
 	JwtSecret   string
 	CasbinModel string
+	Domain      string
 }
 
 type JWT struct {
@@ -43,7 +44,7 @@ func LoadConfig() (*Config, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Config error. Plase set ENV JWT_ACCESS_TOKEN_EXPIRY. %v", err)
 	}
-	refreshTokenExpiry, err := time.ParseDuration(getEnv("JWT_REFRESH_TOKEN_EXPIRY", "7d"))
+	refreshTokenExpiry, err := time.ParseDuration(getEnv("JWT_REFRESH_TOKEN_EXPIRY", "168h"))
 	if err != nil {
 		return nil, fmt.Errorf("Config error. Plase set ENV JWT_REFRESH_TOKEN_EXPIRY. %v", err)
 	}
@@ -62,6 +63,7 @@ func LoadConfig() (*Config, error) {
 			ServerAddr:  os.Getenv("SERVER_ADDR"),
 			JwtSecret:   os.Getenv("JWT_SECRET"),
 			CasbinModel: os.Getenv("CASBIN_MODEL"),
+			Domain:      os.Getenv("DOMAIN"),
 		},
 		JWT: JWT{
 			AccessPrivateKey:   getEnv("JWT_ACCESS_PRIVATE_KEY", ""),
@@ -138,6 +140,7 @@ func TestConfig() (*Config, error) {
 			ServerAddr:  getEnv("TEST_SERVER_ADDR", ":8080"),
 			JwtSecret:   getEnv("TEST_JWT_SECRET", "jwt-secret-jwt-secret"),
 			CasbinModel: getEnv("TEST_CASBIN_MODEL", "../config/model.conf"),
+			Domain:      getEnv("TEST_DOMAIN", "localhost"),
 		},
 		JWT: JWT{
 			AccessPrivateKey:   string(accessPrivateKey),

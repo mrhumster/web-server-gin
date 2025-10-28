@@ -2,7 +2,6 @@ package middleware
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"strings"
 
@@ -17,7 +16,6 @@ func AuthMiddleware(tokenService *service.TokenService) gin.HandlerFunc {
 
 		token := extractToken(c.Request)
 		claims, err := tokenService.ValidateAccessToken(token)
-		log.Printf("⚠️ AuthMiddleware: CLAIM ERROR %v %v", err, claims)
 		if err != nil {
 			c.JSON(http.StatusUnauthorized, response.ErrorResponse("invalid token claims"))
 			c.Abort()
@@ -45,8 +43,6 @@ func Authorize(obj string, act string, enforcer *casbin.Enforcer) gin.HandlerFun
 		if resourceID != "" {
 			fullResource = fmt.Sprintf("%s/%s", obj, resourceID)
 		}
-
-		log.Printf("🚩 Authorize debug! SUB: %s;  OBJ: %s; ACT: %s", userID, fullResource, act)
 
 		if ok, _ := enforcer.Enforce(userID, fullResource, act); !ok {
 			c.AbortWithStatusJSON(http.StatusForbidden, response.ErrorResponse("Access denied"))

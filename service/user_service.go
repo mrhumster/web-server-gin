@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"sync"
 
 	"github.com/casbin/casbin/v2"
 	"github.com/jackc/pgx/v5/pgconn"
@@ -25,6 +26,7 @@ func strPtr(s string) *string {
 type UserService struct {
 	repo     *repository.UserRepository
 	enforcer *casbin.Enforcer
+	mu       sync.RWMutex
 }
 
 func NewUserService(repo *repository.UserRepository, enforcer *casbin.Enforcer) *UserService {
@@ -49,10 +51,12 @@ func (s *UserService) CreateUser(ctx context.Context, user models.User) (uint, e
 		return 0, err
 	}
 
+	s.mu.Lock()
 	policy := fmt.Sprintf("%d", id)
 	resource := fmt.Sprintf("users/%d", id)
 	s.enforcer.AddPolicy(policy, resource, "*")
 	s.enforcer.AddPolicy(policy, "users", "read")
+	s.mu.Unlock()
 	return id, nil
 }
 

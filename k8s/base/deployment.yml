@@ -17,13 +17,15 @@ spec:
     spec:
       containers:
         - name: web-server-gin
-          image: xomrkob/web-server-gin:1.1.49
+          image: xomrkob/web-server-gin:1.1.59
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
           env:
             - name: SERVER_ADDR
               value: ":8080"
+            - name: DOMAIN
+              value: go-app.example.com
             - name: DB_HOST
               value: postgresql.go-app.svc.cluster.local
             - name: DB_PORT
@@ -67,7 +69,10 @@ spec:
                 secretKeyRef:
                   name: go-app-secret
                   key: REFRESH_PUBLIC_KEY
-
+            - name: JWT_REFRESH_TOKEN_EXPIRY
+              value: "168h"
+            - name: JWT_ACCESS_TOKEN_EXPIRY
+              value: "60m"
           resources:
             requests:
               memory: "256Mi"

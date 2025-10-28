@@ -2,27 +2,31 @@ package handler
 
 import (
 	"fmt"
+	"log"
+	"net/http"
+	"strconv"
+	"time"
+
 	"github.com/gin-gonic/gin"
 	"github.com/mrhumster/web-server-gin/dto/request"
 	"github.com/mrhumster/web-server-gin/dto/response"
 	"github.com/mrhumster/web-server-gin/models"
 	"github.com/mrhumster/web-server-gin/service"
-	"net/http"
-	"strconv"
-	"time"
 )
 
 type AuthHandler struct {
 	UserService  *service.UserService
 	TokenService *service.TokenService
 	JwtSecret    string
+	Domain       string
 }
 
-func NewAuthHandler(userService *service.UserService, tokenService *service.TokenService, jwtSecret string) *AuthHandler {
+func NewAuthHandler(userService *service.UserService, tokenService *service.TokenService, jwtSecret, domain string) *AuthHandler {
 	return &AuthHandler{
 		UserService:  userService,
 		TokenService: tokenService,
 		JwtSecret:    jwtSecret,
+		Domain:       domain,
 	}
 }
 
@@ -57,7 +61,7 @@ func (a *AuthHandler) Login(c *gin.Context) {
 		tokenPair.RefreshToken,
 		int(a.TokenService.GetRefreshExpiry().Seconds()),
 		"/api/refresh",
-		"",
+		a.Domain,
 		false,
 		true,
 	)
@@ -88,7 +92,8 @@ func (a *AuthHandler) Refresh(c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusUnauthorized, response.ErrorResponse("invalid user id in claim"))
 	}
 	u, err := a.UserService.ReadUser(c, uint(userID))
-	if err != nil || u.TokenVersion != &claims.TokenVersion {
+	if err != nil || *u.TokenVersion != claims.TokenVersion {
+		log.Printf("⚠️ AUTH HANDLER: User Token ver %v; claims token ver %v", *u.TokenVersion, claims.TokenVersion)
 		c.AbortWithStatusJSON(http.StatusUnauthorized, response.ErrorResponse("token revoke"))
 		return
 	}
@@ -103,7 +108,7 @@ func (a *AuthHandler) Refresh(c *gin.Context) {
 		tokenPair.RefreshToken,
 		int(a.TokenService.GetRefreshExpiry().Seconds()),
 		"/api/refresh",
-		"",
+		a.Domain,
 		false,
 		true,
 	)
