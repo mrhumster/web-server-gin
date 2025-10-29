@@ -15,20 +15,25 @@ func TestTokenService_GenerateAndValidateToken(t *testing.T) {
 	cfg, _ := config.TestConfig()
 	service, _ := NewTokenService(&cfg.JWT)
 
+	login := "testuser"
+	email := "testuser@test.local"
+	role := "member"
+	tokenVersion := "1"
 	user := &models.User{
-		Login: strPtr("testuser"),
-		Email: strPtr("test@example.com"),
+		Login:        &login,
+		Email:        &email,
+		Role:         &role,
+		TokenVersion: &tokenVersion,
 	}
 
 	token, err := service.GenerateToken(user)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, token)
 
-	claims, err := service.ValidateToken(token)
+	claims, err := service.ValidateAccessToken(token.AccessToken)
 	assert.NoError(t, err)
 	assert.Equal(t, fmt.Sprintf("%d", user.ID), claims.UserID)
 	assert.Equal(t, *user.Login, claims.Username)
-	assert.Equal(t, *user.Email, claims.Email)
 	assert.Equal(t, "auth-service", claims.Issuer)
 }
 
@@ -36,10 +41,10 @@ func TestTokenService_ValidateToken_Invalid(t *testing.T) {
 	cfg, _ := config.TestConfig()
 	service, _ := NewTokenService(&cfg.JWT)
 
-	_, err := service.ValidateToken("invalid-token")
+	_, err := service.ValidateAccessToken("invalid-token")
 	assert.Error(t, err)
 
-	claims := &models.Claims{
+	claims := &models.AccessClaims{
 		UserID:   "123",
 		Username: "testuser",
 		RegisteredClaims: jwt.RegisteredClaims{
@@ -51,6 +56,6 @@ func TestTokenService_ValidateToken_Invalid(t *testing.T) {
 	token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
 	expiredToken, _ := token.SignedString([]byte("test-secret"))
 
-	_, err = service.ValidateToken(expiredToken)
+	_, err = service.ValidateAccessToken(expiredToken)
 	assert.Error(t, err)
 }

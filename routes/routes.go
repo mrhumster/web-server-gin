@@ -56,7 +56,7 @@ func SetupRoutes(db *gorm.DB, mode string) *gin.Engine {
 		panic("Error create new token service")
 	}
 	userHandler := handler.NewUserHandler(userService)
-	authHandler := handler.NewAuthHandler(userService, tokenService, cfg.JwtSecret)
+	authHandler := handler.NewAuthHandler(userService, tokenService, cfg.JwtSecret, cfg.Server.Domain)
 	commonHandler := handler.NewCommonHandler(tokenService)
 
 	AddPolicyIfNotExists("admin", "*", "*", enforcer)
@@ -66,16 +66,19 @@ func SetupRoutes(db *gorm.DB, mode string) *gin.Engine {
 	r.POST("/api/login", authHandler.Login)
 	r.GET("/api/logout", authHandler.Logout)
 	r.POST("/api/users", userHandler.CreateUser)
-	r.GET("/api/auth/public-key", commonHandler.GetPublicKey)
+	r.POST("/api/refresh", authHandler.Refresh)
 
 	auth := r.Group("/api", middleware.AuthMiddleware(tokenService))
 	{
+		auth.POST("/logout", middleware.AuthMiddleware(tokenService), authHandler.Logout)
+		auth.POST("/logout-all", middleware.AuthMiddleware(tokenService), authHandler.LogoutAll)
 		auth.GET("/users", middleware.Authorize("users", "read", enforcer), userHandler.ReadUsers)
 		auth.GET("/users/:id", middleware.Authorize("users", "read", enforcer), userHandler.ReadUser)
 		auth.PATCH("/users/:id", middleware.Authorize("users", "write", enforcer), userHandler.Update)
 		auth.DELETE("/users/:id", middleware.Authorize("users", "delete", enforcer), userHandler.Delete)
 	}
 
+	r.GET("/api/auth/public-key", commonHandler.GetPublicKey)
 	r.GET("/health", func(c *gin.Context) {
 		if _, err := db.DB(); err != nil {
 			log.Println("⚠️ PG ERROR: ", err.Error())

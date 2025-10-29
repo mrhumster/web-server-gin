@@ -52,12 +52,11 @@ func (s *UserService) CreateUser(ctx context.Context, user models.User) (uint, e
 	}
 
 	s.mu.Lock()
-	defer s.mu.Unlock()
-
 	policy := fmt.Sprintf("%d", id)
 	resource := fmt.Sprintf("users/%d", id)
 	s.enforcer.AddPolicy(policy, resource, "*")
 	s.enforcer.AddPolicy(policy, "users", "read")
+	s.mu.Unlock()
 	return id, nil
 }
 
@@ -99,4 +98,8 @@ func (s *UserService) ValidateUser(ctx context.Context, email, password string) 
 		return user, nil
 	}
 	return nil, errors.New("invalid password")
+}
+
+func (s *UserService) UpdateTokenVersion(ctx context.Context, userID uint64, version string) error {
+	return s.repo.UpdateTokenVersion(ctx, userID, version)
 }

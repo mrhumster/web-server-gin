@@ -3,7 +3,6 @@ package models
 import (
 	"log"
 
-	"github.com/golang-jwt/jwt/v5"
 	"github.com/mrhumster/web-server-gin/dto/request"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
@@ -17,6 +16,7 @@ type User struct {
 	Name         *string `gorm:"" json:"name"`
 	LastName     *string `gorm:"" json:"last_name"`
 	Role         *string `gorm:"" json:"role"`
+	TokenVersion *string `gorm:"default:'v1'"`
 }
 
 func (User) TableName() string {
@@ -65,11 +65,4 @@ func (u *User) Debug() {
 	log.Printf("👤 Login: %s", *u.Login)
 	log.Printf("\tEmail: %s", *u.Email)
 	log.Printf("\tPasswordHash: %s", *u.PasswordHash)
-}
-
-type Claims struct {
-	UserID   string `json:"user_id"`
-	Username string `json:"username"`
-	Email    string `json:"email"`
-	jwt.RegisteredClaims
 }

@@ -48,5 +48,5 @@ func TestAuthHandler_Login_Success(t *testing.T) {
 		Password: password,
 	}
 	response, _ := AuthByLogin(router, loginReq.Email, loginReq.Password)
-	assert.NotEmpty(t, response.Token)
+	assert.NotEmpty(t, response.AccessToken)
 }

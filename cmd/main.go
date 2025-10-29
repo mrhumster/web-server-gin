@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -15,7 +16,10 @@ import (
 )
 
 func main() {
-	cfg, _ := config.LoadConfig()
+	cfg, err := config.LoadConfig()
+	if err != nil {
+		panic(fmt.Sprintf("❌ Config: %s", err.Error()))
+	}
 	db := database.SetupDatabase(cfg)
 	r := routes.SetupRoutes(db, "qa")
 
@@ -31,8 +35,11 @@ func main() {
 	}()
 
 	srv := &http.Server{
-		Addr:    cfg.ServerAddr,
-		Handler: r,
+		Addr:         cfg.ServerAddr,
+		Handler:      r,
+		ReadTimeout:  15 * time.Second,
+		WriteTimeout: 15 * time.Second,
+		IdleTimeout:  60 * time.Second,
 	}
 
 	go func() {
