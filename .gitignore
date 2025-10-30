@@ -1,1 +1,3 @@
-config/keys/
+**/*.pem
+**/*.crt 
+**/*.key
