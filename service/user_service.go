@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/casbin/casbin/v2"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/mrhumster/web-server-gin/dto/request"
 	"github.com/mrhumster/web-server-gin/models"
@@ -24,18 +23,19 @@ func strPtr(s string) *string {
 }
 
 type UserService struct {
-	repo     *repository.UserRepository
-	enforcer *casbin.Enforcer
-	mu       sync.RWMutex
+	repo              *repository.UserRepository
+	permissionService *PermissionService
+	mu                sync.RWMutex
 }
 
-func NewUserService(repo *repository.UserRepository, enforcer *casbin.Enforcer) *UserService {
-	return &UserService{repo: repo, enforcer: enforcer}
+func NewUserService(repo *repository.UserRepository, perm *PermissionService) *UserService {
+	return &UserService{repo: repo, permissionService: perm}
 }
 
 func (s *UserService) CreateUser(ctx context.Context, user models.User) (uint, error) {
 	if user.Role == nil {
-		user.Role = strPtr("member")
+		role := "member"
+		user.Role = &role
 	}
 	id, err := s.repo.CreateUser(ctx, user)
 	if err != nil {
@@ -54,8 +54,8 @@ func (s *UserService) CreateUser(ctx context.Context, user models.User) (uint, e
 	s.mu.Lock()
 	policy := fmt.Sprintf("%d", id)
 	resource := fmt.Sprintf("users/%d", id)
-	s.enforcer.AddPolicy(policy, resource, "*")
-	s.enforcer.AddPolicy(policy, "users", "read")
+	s.permissionService.AddRule(policy, resource, "*")
+	s.permissionService.AddRule(policy, "users", "read")
 	s.mu.Unlock()
 	return id, nil
 }
@@ -73,7 +73,7 @@ func (s *UserService) DeleteUser(ctx context.Context, id uint) error {
 	if err == nil {
 		policy := fmt.Sprintf("users:%d", id)
 		resource := fmt.Sprintf("users/%d", id)
-		s.enforcer.RemovePolicy(policy, resource, "*")
+		s.permissionService.DeleteRule(policy, resource, "*")
 	}
 	return err
 

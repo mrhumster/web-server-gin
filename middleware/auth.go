@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/casbin/casbin/v2"
 	"github.com/gin-gonic/gin"
 	"github.com/mrhumster/web-server-gin/dto/response"
 	"github.com/mrhumster/web-server-gin/service"
@@ -28,7 +27,7 @@ func AuthMiddleware(tokenService *service.TokenService) gin.HandlerFunc {
 	}
 }
 
-func Authorize(obj string, act string, enforcer *casbin.Enforcer) gin.HandlerFunc {
+func Authorize(obj string, act string, p *service.PermissionService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		userIDinterface, exists := c.Get("userID")
 		userID := fmt.Sprintf("%v", userIDinterface)
@@ -44,7 +43,7 @@ func Authorize(obj string, act string, enforcer *casbin.Enforcer) gin.HandlerFun
 			fullResource = fmt.Sprintf("%s/%s", obj, resourceID)
 		}
 
-		if ok, _ := enforcer.Enforce(userID, fullResource, act); !ok {
+		if ok, _ := p.CheckPermission(userID, fullResource, act); !ok {
 			c.AbortWithStatusJSON(http.StatusForbidden, response.ErrorResponse("Access denied"))
 			return
 		}

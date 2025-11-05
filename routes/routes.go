@@ -16,13 +16,9 @@ import (
 	"gorm.io/gorm"
 )
 
-func AddPolicyIfNotExists(sub, obj, act string, enforcer *casbin.Enforcer) {
-	if hasPolicy, _ := enforcer.HasPolicy(sub, obj, act); !hasPolicy {
-		enforcer.AddPolicy(sub, obj, act)
-	}
-}
-
 func SetupRoutes(db *gorm.DB, mode string) *gin.Engine {
+
+	// MODE
 	if mode == "test" {
 		gin.SetMode(gin.TestMode)
 	}
@@ -30,39 +26,51 @@ func SetupRoutes(db *gorm.DB, mode string) *gin.Engine {
 		gin.SetMode(gin.DebugMode)
 	}
 
+	// GIN ROUTE
 	r := gin.Default()
 
+	// CONFIGURATION
 	cfg, _ := config.LoadConfig()
 	if mode == "test" || mode == "debug" {
 		cfg, _ = config.TestConfig()
 	}
 
+	// DATABSE
 	adapter, err := gormadapter.NewAdapterByDB(db)
 	if err != nil {
 		panic(fmt.Sprintf("failed to initialize casbin adapter: %v", err))
 	}
 
+	// CASBIN RULES
 	enforcer, err := casbin.NewEnforcer(cfg.Server.CasbinModel, adapter)
 	if err != nil {
 		log.Printf("⚠️ Casbin Load Error, %s", err.Error())
 		panic("⚠️ Error loading roles config")
 	}
 
+	// REPOSITORIES
 	userRepo := repository.NewUserRepository(db)
-	userService := service.NewUserService(userRepo, enforcer)
+	permissionService := service.NewPermissionService(enforcer)
+
+	// SERVICES
+	userService := service.NewUserService(userRepo, permissionService)
 	tokenService, err := service.NewTokenService(&cfg.JWT)
 	if err != nil {
 		fmt.Printf("⚠️ SetupRoutes: %v", err)
 		panic("Error create new token service")
 	}
+
+	// HANDLERS
 	userHandler := handler.NewUserHandler(userService)
 	authHandler := handler.NewAuthHandler(userService, tokenService, cfg.JwtSecret, cfg.Server.Domain)
 	commonHandler := handler.NewCommonHandler(tokenService)
 
-	AddPolicyIfNotExists("admin", "*", "*", enforcer)
-	AddPolicyIfNotExists("member", "users", "read", enforcer)
-	AddPolicyIfNotExists("*", "users", "read", enforcer)
+	// PERMISSIONS
+	permissionService.AddPolicyIfNotExists("admin", "*", "*")
+	permissionService.AddPolicyIfNotExists("member", "users", "read")
+	permissionService.AddPolicyIfNotExists("*", "users", "read")
 
+	// ROUTE
 	r.POST("/api/login", authHandler.Login)
 	r.GET("/api/logout", authHandler.Logout)
 	r.POST("/api/users", userHandler.CreateUser)
@@ -72,10 +80,10 @@ func SetupRoutes(db *gorm.DB, mode string) *gin.Engine {
 	{
 		auth.POST("/logout", middleware.AuthMiddleware(tokenService), authHandler.Logout)
 		auth.POST("/logout-all", middleware.AuthMiddleware(tokenService), authHandler.LogoutAll)
-		auth.GET("/users", middleware.Authorize("users", "read", enforcer), userHandler.ReadUsers)
-		auth.GET("/users/:id", middleware.Authorize("users", "read", enforcer), userHandler.ReadUser)
-		auth.PATCH("/users/:id", middleware.Authorize("users", "write", enforcer), userHandler.Update)
-		auth.DELETE("/users/:id", middleware.Authorize("users", "delete", enforcer), userHandler.Delete)
+		auth.GET("/users", middleware.Authorize("users", "read", permissionService), userHandler.ReadUsers)
+		auth.GET("/users/:id", middleware.Authorize("users", "read", permissionService), userHandler.ReadUser)
+		auth.PATCH("/users/:id", middleware.Authorize("users", "write", permissionService), userHandler.Update)
+		auth.DELETE("/users/:id", middleware.Authorize("users", "delete", permissionService), userHandler.Delete)
 	}
 
 	r.GET("/api/auth/public-key", commonHandler.GetPublicKey)

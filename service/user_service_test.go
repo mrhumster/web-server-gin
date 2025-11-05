@@ -25,7 +25,8 @@ func TestUserService_Create(t *testing.T) {
 		t.Fatal("UserRepository is nil")
 	}
 	enforcer := testutils.GetEnforcer(db)
-	service := NewUserService(repo, enforcer)
+	permissionService := NewPermissionService(enforcer)
+	service := NewUserService(repo, permissionService)
 	if service == nil {
 		t.Fatal("UserService is nil")
 	}
@@ -90,7 +91,8 @@ func TestUserService_Validate(t *testing.T) {
 	defer testutils.CleanTestDatabase()
 	repo := repository.NewUserRepository(db)
 	enforcer := testutils.GetEnforcer(db)
-	service := NewUserService(repo, enforcer)
+	permissionService := NewPermissionService(enforcer)
+	service := NewUserService(repo, permissionService)
 	ctx := context.Background()
 	t.Run("Password validate success", func(t *testing.T) {
 
