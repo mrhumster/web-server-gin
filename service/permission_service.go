@@ -25,14 +25,14 @@ func (p *PermissionService) AddPolicyIfNotExists(sub, obj, act string) (bool, er
 	return true, nil
 }
 
-func (p *PermissionService) CheckPermission(userID, resource, act string) (bool, error) {
-	return p.enforcer.Enforce(userID, resource, act)
+func (p *PermissionService) CheckPermission(subj, obj, act string) (bool, error) {
+	return p.enforcer.Enforce(subj, obj, act)
 }
 
-func (p *PermissionService) AddPolicy(policy, resource, permission string) (bool, error) {
-	return p.enforcer.AddPolicy(policy, resource, permission)
+func (p *PermissionService) AddPolicy(sub, obj, act string) (bool, error) {
+	return p.enforcer.AddPolicy(sub, obj, act)
 }
 
-func (p *PermissionService) DeletePolicy(policy, resource, permission string) (bool, error) {
-	return p.enforcer.RemovePolicy(policy, resource, permission)
+func (p *PermissionService) RemovePolicy(sub, obj, act string) (bool, error) {
+	return p.enforcer.RemovePolicy(sub, obj, act)
 }

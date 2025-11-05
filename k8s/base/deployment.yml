@@ -17,10 +17,11 @@ spec:
     spec:
       containers:
         - name: web-server-gin
-          image: xomrkob/web-server-gin:1.1.59
+          image: xomrkob/web-server-gin:1.1.63
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
+            - containerPort: 50051
           env:
             - name: SERVER_ADDR
               value: ":8080"

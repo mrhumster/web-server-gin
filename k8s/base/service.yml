@@ -7,6 +7,10 @@ spec:
   selector:
     app: web-server-gin
   ports:
-    - port: 80
+    - name: http
+      port: 80
       targetPort: 8080
+    - name: grpc
+      port: 50051
+      targetPort: 50051
   type: ClusterIP

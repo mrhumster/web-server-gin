@@ -54,8 +54,8 @@ func (s *UserService) CreateUser(ctx context.Context, user models.User) (uint, e
 	s.mu.Lock()
 	policy := fmt.Sprintf("%d", id)
 	resource := fmt.Sprintf("users/%d", id)
-	s.permissionService.AddRule(policy, resource, "*")
-	s.permissionService.AddRule(policy, "users", "read")
+	s.permissionService.AddPolicy(policy, resource, "*")
+	s.permissionService.AddPolicy(policy, "users", "read")
 	s.mu.Unlock()
 	return id, nil
 }
@@ -73,7 +73,7 @@ func (s *UserService) DeleteUser(ctx context.Context, id uint) error {
 	if err == nil {
 		policy := fmt.Sprintf("users:%d", id)
 		resource := fmt.Sprintf("users/%d", id)
-		s.permissionService.DeleteRule(policy, resource, "*")
+		s.permissionService.RemovePolicy(policy, resource, "*")
 	}
 	return err
 
