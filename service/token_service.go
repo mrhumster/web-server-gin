@@ -129,7 +129,7 @@ func (s *TokenService) GetAccessPublicKey() *rsa.PublicKey {
 }
 
 func (s *TokenService) GetPublicKeyPEM() (string, error) {
-	pubKeyBytes, err := x509.MarshalPKIXPublicKey(s.refreshPublicKey)
+	pubKeyBytes, err := x509.MarshalPKIXPublicKey(s.accessPublicKey)
 	if err != nil {
 		return "", err
 	}
