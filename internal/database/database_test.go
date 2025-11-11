@@ -1,15 +1,20 @@
 package database
 
 import (
+	"testing"
+
 	"github.com/mrhumster/web-server-gin/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func TestSetupDatabase(t *testing.T) {
 	t.Run("should create database connection with valid config", func(t *testing.T) {
-		cfg, _ := config.TestConfig()
+		cfg, err := config.TestConfig()
+
+		if err != nil {
+			t.Errorf("⚠️ TestSetupDatabase error: %v", err)
+		}
 
 		assert.NotPanics(t, func() {
 			db := SetupDatabase(cfg)

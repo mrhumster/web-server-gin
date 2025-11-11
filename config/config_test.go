@@ -1,9 +1,9 @@
 package config
 
 import (
-	"testing"
-
 	"github.com/stretchr/testify/assert"
+
+	"testing"
 )
 
 func TestConfig_GetEnv(t *testing.T) {

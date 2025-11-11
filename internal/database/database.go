@@ -1,16 +1,19 @@
 package database
 
 import (
+	"fmt"
+	"time"
+
 	"github.com/mrhumster/web-server-gin/config"
 	"github.com/mrhumster/web-server-gin/models"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
-	"time"
 )
 
 func SetupDatabase(cfg *config.Config) *gorm.DB {
 	db, err := gorm.Open(postgres.Open(cfg.GetDsn()), &gorm.Config{})
 	if err != nil {
+		fmt.Printf("⚠️ SetupDatabase error: %v", err)
 		panic("⚠️ GORM not open DB")
 
 	}

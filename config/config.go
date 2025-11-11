@@ -3,6 +3,8 @@ package config
 import (
 	"fmt"
 	"os"
+	"path/filepath"
+	"runtime"
 	"time"
 )
 
@@ -36,6 +38,12 @@ type Config struct {
 	Database
 	Server `mapstructure:"server"`
 	JWT    `mapstructure:"jwt"`
+}
+
+func GetRootDir() string {
+	_, b, _, _ := runtime.Caller(0)
+	basepath := filepath.Dir(b)
+	return filepath.Join(basepath, "..")
 }
 
 func LoadConfig() (*Config, error) {
@@ -79,6 +87,9 @@ func LoadConfig() (*Config, error) {
 }
 
 func (config *Config) GetDsn() string {
+	if config == nil {
+		panic("⚠️ Config is nil error: ")
+	}
 	return fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=%s TimeZone=%s",
 		config.Host,
 		config.User,
@@ -106,24 +117,31 @@ func TestConfig() (*Config, error) {
 		return nil, fmt.Errorf("Config error. Plase set ENV JWT_REFRESH_TOKEN_EXPIRY. %v", err)
 	}
 
-	accessPrivateKey, err := os.ReadFile("../config/keys/accessPrivate.pem")
+	rootDir := GetRootDir()
+
+	accessPrivateKeyPath := filepath.Join(rootDir, "config", "keys", "accessPrivate.pem")
+	accessPublicKeyPath := filepath.Join(rootDir, "config", "keys", "accessPublic.pem")
+	refreshPrivateKeyPath := filepath.Join(rootDir, "config", "keys", "refreshPrivate.pem")
+	refreshPublicKeyPath := filepath.Join(rootDir, "config", "keys", "refreshPublic.pem")
+
+	accessPrivateKey, err := os.ReadFile(accessPrivateKeyPath)
 	if err != nil {
-		return nil, fmt.Errorf("Config error. AccessPrivateKey not read.")
+		return nil, fmt.Errorf("Config error. AccessPrivateKey not read: %w", err)
 	}
 
-	accessPublicKey, err := os.ReadFile("../config/keys/accessPublic.pem")
+	accessPublicKey, err := os.ReadFile(accessPublicKeyPath)
 	if err != nil {
-		return nil, fmt.Errorf("Config error. AccessPublicKey not read.")
+		return nil, fmt.Errorf("Config error. AccessPublicKey not read: %w", err)
 	}
 
-	refreshPrivateKey, err := os.ReadFile("../config/keys/refreshPrivate.pem")
+	refreshPrivateKey, err := os.ReadFile(refreshPrivateKeyPath)
 	if err != nil {
-		return nil, fmt.Errorf("Config error. RefreshPrivateKey not read.")
+		return nil, fmt.Errorf("Config error. RefreshPrivateKey not read: %w", err)
 	}
 
-	refreshPublicKey, err := os.ReadFile("../config/keys/refreshPublic.pem")
+	refreshPublicKey, err := os.ReadFile(refreshPublicKeyPath)
 	if err != nil {
-		return nil, fmt.Errorf("Config error. RefreshPublicKey not read.")
+		return nil, fmt.Errorf("Config error. RefreshPublicKey not read: %w", err)
 	}
 
 	return &Config{

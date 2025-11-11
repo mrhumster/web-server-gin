@@ -2,7 +2,7 @@ package routes
 
 import (
 	"github.com/mrhumster/web-server-gin/config"
-	"github.com/mrhumster/web-server-gin/database"
+	"github.com/mrhumster/web-server-gin/internal/database"
 	"github.com/stretchr/testify/assert"
 	"gorm.io/gorm"
 	"testing"
