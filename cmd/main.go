@@ -19,6 +19,7 @@ import (
 	"github.com/mrhumster/web-server-gin/internal/delivery/http/routes"
 	"github.com/mrhumster/web-server-gin/internal/permission"
 	"github.com/mrhumster/web-server-gin/internal/service"
+	"github.com/mrhumster/web-server-gin/pkg/auth"
 	"google.golang.org/grpc"
 )
 
@@ -28,7 +29,13 @@ func main() {
 		panic(fmt.Sprintf("❌ Config: %s", err.Error()))
 	}
 	db := database.SetupDatabase(cfg)
-	r := routes.SetupRoutes(db, "qa")
+
+	permGRPCClient, err := auth.NewPermissionClient(cfg.Server.AuthServiceAddr)
+	if err != nil {
+		panic(fmt.Sprintf("❌ Permission gRPC client: %s", err.Error()))
+	}
+
+	r := routes.SetupRoutes(db, "debug", permGRPCClient)
 
 	defer func() {
 		log.Println("🟡 Closing database pool...")
@@ -39,6 +46,8 @@ func main() {
 		if err := sqlDB.Close(); err != nil {
 			log.Println("🟢 Database pool closed")
 		}
+		log.Printf("🟡 Closing gRPC client...")
+		permGRPCClient.Close()
 	}()
 
 	httpErr := make(chan error, 1)

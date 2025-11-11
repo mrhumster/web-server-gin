@@ -10,9 +10,11 @@ import (
 	"testing"
 
 	"github.com/gin-gonic/gin"
+	"github.com/mrhumster/web-server-gin/config"
 	"github.com/mrhumster/web-server-gin/internal/delivery/http/dto/request"
 	"github.com/mrhumster/web-server-gin/internal/delivery/http/dto/response"
 	"github.com/mrhumster/web-server-gin/internal/delivery/http/routes"
+	"github.com/mrhumster/web-server-gin/pkg/auth"
 	"github.com/mrhumster/web-server-gin/tests/testutils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -21,7 +23,15 @@ import (
 
 func setupTest() (*gin.Engine, *gorm.DB) {
 	db := testutils.GetTestDB()
-	router := routes.SetupRoutes(db, "debug")
+	cfg, err := config.TestConfig()
+	if err != nil {
+		panic("⚠️ SetupTest config error")
+	}
+	permGRPCClient, err := auth.NewPermissionClient(cfg.Server.AuthServiceAddr)
+	if err != nil {
+		panic("⚠️ SetupTest gRPC client error")
+	}
+	router := routes.SetupRoutes(db, "test", permGRPCClient)
 	return router, db
 }
 

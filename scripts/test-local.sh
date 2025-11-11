@@ -3,11 +3,17 @@
 set -e
 
 NAMESPACE="go-app"
-LOCAL_DB_PORT=5433
+LOCAL_DB_PORT=5432
+LOCAL_PERMISSION_PORT=50051
 
 echo "🔌 Setting up port forwarding to Kubernetes PostgreSQL..."
 
 kubectl port-forward -n $NAMESPACE svc/postgresql $LOCAL_DB_PORT:5432 >/dev/null 2>&1 &
+PF_PID=$!
+
+echo "🔌 Setting up port forwarding to Kubernetes gRPC permission service..."
+
+kubectl port-forward -n $NAMESPACE svc/web-server-gin-service $LOCAL_PERMISSION_PORT:50051 >/dev/null 2>&1 &
 PF_PID=$!
 
 sleep 3

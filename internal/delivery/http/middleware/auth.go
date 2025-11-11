@@ -1,13 +1,14 @@
 package middleware
 
 import (
-	"fmt"
 	"net/http"
 	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/mrhumster/web-server-gin/internal/delivery/http/dto/response"
 	"github.com/mrhumster/web-server-gin/internal/service"
+	"github.com/mrhumster/web-server-gin/pkg/auth"
+	"github.com/mrhumster/web-server-gin/pkg/middleware"
 )
 
 func AuthMiddleware(tokenService *service.TokenService) gin.HandlerFunc {
@@ -27,6 +28,7 @@ func AuthMiddleware(tokenService *service.TokenService) gin.HandlerFunc {
 	}
 }
 
+/*
 func Authorize(obj string, act string, p *service.PermissionService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		userIDinterface, exists := c.Get("userID")
@@ -50,6 +52,11 @@ func Authorize(obj string, act string, p *service.PermissionService) gin.Handler
 
 		c.Next()
 	}
+}
+*/
+
+func Authorize(obj string, act string, client *auth.PermissionClient) gin.HandlerFunc {
+	return middleware.Authorize(client, obj, act)
 }
 
 func extractToken(r *http.Request) string {

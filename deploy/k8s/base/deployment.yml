@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: web-server-gin
-          image: xomrkob/web-server-gin:1.2
+          image: xomrkob/web-server-gin:1.2.4
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
@@ -74,6 +74,8 @@ spec:
               value: "168h"
             - name: JWT_ACCESS_TOKEN_EXPIRY
               value: "60m"
+            - name: AUTH_SERVICE_ADDRESS
+              value: web-server-gin-service:50051
           resources:
             requests:
               memory: "256Mi"

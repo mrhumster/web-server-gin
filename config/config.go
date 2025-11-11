@@ -19,10 +19,11 @@ type Database struct {
 }
 
 type Server struct {
-	ServerAddr  string
-	JwtSecret   string
-	CasbinModel string
-	Domain      string
+	ServerAddr      string
+	JwtSecret       string
+	CasbinModel     string
+	Domain          string
+	AuthServiceAddr string
 }
 
 type JWT struct {
@@ -68,10 +69,11 @@ func LoadConfig() (*Config, error) {
 			TimeZone: "UTC",
 		},
 		Server: Server{
-			ServerAddr:  os.Getenv("SERVER_ADDR"),
-			JwtSecret:   os.Getenv("JWT_SECRET"),
-			CasbinModel: os.Getenv("CASBIN_MODEL"),
-			Domain:      os.Getenv("DOMAIN"),
+			ServerAddr:      os.Getenv("SERVER_ADDR"),
+			JwtSecret:       os.Getenv("JWT_SECRET"),
+			CasbinModel:     os.Getenv("CASBIN_MODEL"),
+			Domain:          os.Getenv("DOMAIN"),
+			AuthServiceAddr: os.Getenv("AUTH_SERVICE_ADDRESS"),
 		},
 		JWT: JWT{
 			AccessPrivateKey:   getEnv("JWT_ACCESS_PRIVATE_KEY", ""),
@@ -157,10 +159,11 @@ func TestConfig() (*Config, error) {
 			TimeZone: "UTC",
 		},
 		Server: Server{
-			ServerAddr:  getEnv("TEST_SERVER_ADDR", ":8080"),
-			JwtSecret:   getEnv("TEST_JWT_SECRET", "jwt-secret-jwt-secret"),
-			CasbinModel: getEnv("TEST_CASBIN_MODEL", casbinModelPath),
-			Domain:      getEnv("TEST_DOMAIN", "localhost"),
+			ServerAddr:      getEnv("TEST_SERVER_ADDR", ":8080"),
+			JwtSecret:       getEnv("TEST_JWT_SECRET", "jwt-secret-jwt-secret"),
+			CasbinModel:     getEnv("TEST_CASBIN_MODEL", casbinModelPath),
+			Domain:          getEnv("TEST_DOMAIN", "localhost"),
+			AuthServiceAddr: getEnv("TEST_AUTH_SERVICE_ADDRESS", "localhost:50051"),
 		},
 		JWT: JWT{
 			AccessPrivateKey:   string(accessPrivateKey),
