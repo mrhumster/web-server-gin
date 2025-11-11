@@ -8,7 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"github.com/mrhumster/web-server-gin/internal/delivery/http/dto/response"
-	"github.com/mrhumster/web-server-gin/service"
+	"github.com/mrhumster/web-server-gin/internal/service"
 )
 
 func getErrorMessage(fieldError validator.FieldError) string {

@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/mrhumster/web-server-gin/internal/service"
 	"github.com/mrhumster/web-server-gin/proto/gen/go/permission"
-	"github.com/mrhumster/web-server-gin/service"
 )
 
 type PermissionGRPCServer struct {

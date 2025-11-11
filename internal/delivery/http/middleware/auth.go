@@ -7,7 +7,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/mrhumster/web-server-gin/internal/delivery/http/dto/response"
-	"github.com/mrhumster/web-server-gin/service"
+	"github.com/mrhumster/web-server-gin/internal/service"
 )
 
 func AuthMiddleware(tokenService *service.TokenService) gin.HandlerFunc {

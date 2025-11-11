@@ -3,6 +3,7 @@ package testutils
 import (
 	"fmt"
 	"log"
+	"path/filepath"
 
 	"github.com/casbin/casbin/v2"
 	gormadapter "github.com/casbin/gorm-adapter/v3"
@@ -82,12 +83,14 @@ func GetTestDB() *gorm.DB {
 }
 
 func GetEnforcer(db *gorm.DB) *casbin.Enforcer {
+	rootDir := config.GetRootDir()
+	casbinModelPath := filepath.Join(rootDir, "config", "model.conf")
 	adapter, err := gormadapter.NewAdapterByDB(db)
 	if err != nil {
 		panic(fmt.Sprintf("failed to initialize casbin adapter: %v", err))
 	}
 
-	enforcer, err := casbin.NewEnforcer("../config/model.conf", adapter)
+	enforcer, err := casbin.NewEnforcer(casbinModelPath, adapter)
 	if err != nil {
 		panic("⚠️ Error loading roles config")
 	}

@@ -17,8 +17,8 @@ import (
 	"github.com/mrhumster/web-server-gin/internal/database"
 	"github.com/mrhumster/web-server-gin/internal/delivery/http/routes"
 	"github.com/mrhumster/web-server-gin/internal/permission"
+	"github.com/mrhumster/web-server-gin/internal/service"
 	permissionpb "github.com/mrhumster/web-server-gin/proto/gen/go/permission"
-	"github.com/mrhumster/web-server-gin/service"
 	"google.golang.org/grpc"
 )
 

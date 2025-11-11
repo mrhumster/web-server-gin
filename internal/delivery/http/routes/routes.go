@@ -12,7 +12,7 @@ import (
 	"github.com/mrhumster/web-server-gin/internal/delivery/http/handler"
 	"github.com/mrhumster/web-server-gin/internal/delivery/http/middleware"
 	"github.com/mrhumster/web-server-gin/internal/repository"
-	"github.com/mrhumster/web-server-gin/service"
+	"github.com/mrhumster/web-server-gin/internal/service"
 	"gorm.io/gorm"
 )
 
