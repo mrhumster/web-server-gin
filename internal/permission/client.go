@@ -6,6 +6,7 @@ import (
 
 	"github.com/mrhumster/web-server-gin/gen/go/permission"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 type PermissionGRPCClient struct {
@@ -14,7 +15,7 @@ type PermissionGRPCClient struct {
 }
 
 func NewPermissionGRPCClient(url string) (*PermissionGRPCClient, error) {
-	conn, err := grpc.Dial(url, grpc.WithInsecure())
+	conn, err := grpc.NewClient(url, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		return nil, fmt.Errorf("⚠️ failed to connect to auth service: %w", err)
 	}
