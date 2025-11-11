@@ -11,7 +11,7 @@ import (
 	"github.com/mrhumster/web-server-gin/config"
 	"github.com/mrhumster/web-server-gin/internal/delivery/http/handler"
 	"github.com/mrhumster/web-server-gin/internal/delivery/http/middleware"
-	"github.com/mrhumster/web-server-gin/repository"
+	"github.com/mrhumster/web-server-gin/internal/repository"
 	"github.com/mrhumster/web-server-gin/service"
 	"gorm.io/gorm"
 )

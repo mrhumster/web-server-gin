@@ -9,7 +9,7 @@ import (
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/mrhumster/web-server-gin/internal/delivery/http/dto/request"
 	"github.com/mrhumster/web-server-gin/internal/domain/models"
-	"github.com/mrhumster/web-server-gin/repository"
+	"github.com/mrhumster/web-server-gin/internal/repository"
 	"gorm.io/gorm"
 )
 
