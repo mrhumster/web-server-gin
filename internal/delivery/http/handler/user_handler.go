@@ -8,7 +8,7 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/mrhumster/web-server-gin/internal/delivery/http/dto/request"
 	"github.com/mrhumster/web-server-gin/internal/delivery/http/dto/response"
-	"github.com/mrhumster/web-server-gin/models"
+	"github.com/mrhumster/web-server-gin/internal/domain/models"
 	"github.com/mrhumster/web-server-gin/service"
 )
 

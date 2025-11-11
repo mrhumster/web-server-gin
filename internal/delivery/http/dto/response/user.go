@@ -3,7 +3,7 @@ package response
 import (
 	"time"
 
-	"github.com/mrhumster/web-server-gin/models"
+	"github.com/mrhumster/web-server-gin/internal/domain/models"
 )
 
 type UserResponse struct {

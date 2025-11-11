@@ -7,7 +7,7 @@ import (
 	"github.com/casbin/casbin/v2"
 	gormadapter "github.com/casbin/gorm-adapter/v3"
 	"github.com/mrhumster/web-server-gin/config"
-	"github.com/mrhumster/web-server-gin/models"
+	"github.com/mrhumster/web-server-gin/internal/domain/models"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"

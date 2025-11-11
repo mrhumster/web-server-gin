@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/mrhumster/web-server-gin/internal/delivery/http/dto/request"
-	"github.com/mrhumster/web-server-gin/models"
+	"github.com/mrhumster/web-server-gin/internal/domain/models"
 	"github.com/sony/gobreaker"
 	"gorm.io/gorm"
 	"log"

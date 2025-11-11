@@ -12,7 +12,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/mrhumster/web-server-gin/internal/delivery/http/dto/request"
 	"github.com/mrhumster/web-server-gin/internal/delivery/http/dto/response"
-	"github.com/mrhumster/web-server-gin/routes"
+	"github.com/mrhumster/web-server-gin/internal/delivery/http/routes"
 	"github.com/mrhumster/web-server-gin/tests/testutils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

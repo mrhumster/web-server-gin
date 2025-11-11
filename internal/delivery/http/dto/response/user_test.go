@@ -3,7 +3,7 @@ package response
 import (
 	"testing"
 
-	"github.com/mrhumster/web-server-gin/models"
+	"github.com/mrhumster/web-server-gin/internal/domain/models"
 	"github.com/stretchr/testify/assert"
 )
 

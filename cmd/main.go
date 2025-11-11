@@ -15,9 +15,9 @@ import (
 	gormadapter "github.com/casbin/gorm-adapter/v3"
 	"github.com/mrhumster/web-server-gin/config"
 	"github.com/mrhumster/web-server-gin/internal/database"
+	"github.com/mrhumster/web-server-gin/internal/delivery/http/routes"
 	"github.com/mrhumster/web-server-gin/internal/permission"
 	permissionpb "github.com/mrhumster/web-server-gin/proto/gen/go/permission"
-	"github.com/mrhumster/web-server-gin/routes"
 	"github.com/mrhumster/web-server-gin/service"
 	"google.golang.org/grpc"
 )

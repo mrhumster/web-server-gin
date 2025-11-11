@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/mrhumster/web-server-gin/internal/delivery/http/dto/request"
-	"github.com/mrhumster/web-server-gin/models"
+	"github.com/mrhumster/web-server-gin/internal/domain/models"
 	"github.com/mrhumster/web-server-gin/tests/testutils"
 	"github.com/stretchr/testify/assert"
 )
