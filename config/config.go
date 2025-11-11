@@ -124,6 +124,8 @@ func TestConfig() (*Config, error) {
 	refreshPrivateKeyPath := filepath.Join(rootDir, "config", "keys", "refreshPrivate.pem")
 	refreshPublicKeyPath := filepath.Join(rootDir, "config", "keys", "refreshPublic.pem")
 
+	casbinModelPath := filepath.Join(rootDir, "config", "model.conf")
+
 	accessPrivateKey, err := os.ReadFile(accessPrivateKeyPath)
 	if err != nil {
 		return nil, fmt.Errorf("Config error. AccessPrivateKey not read: %w", err)
@@ -157,7 +159,7 @@ func TestConfig() (*Config, error) {
 		Server: Server{
 			ServerAddr:  getEnv("TEST_SERVER_ADDR", ":8080"),
 			JwtSecret:   getEnv("TEST_JWT_SECRET", "jwt-secret-jwt-secret"),
-			CasbinModel: getEnv("TEST_CASBIN_MODEL", "../config/model.conf"),
+			CasbinModel: getEnv("TEST_CASBIN_MODEL", casbinModelPath),
 			Domain:      getEnv("TEST_DOMAIN", "localhost"),
 		},
 		JWT: JWT{

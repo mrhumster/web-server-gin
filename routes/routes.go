@@ -9,7 +9,7 @@ import (
 	gormadapter "github.com/casbin/gorm-adapter/v3"
 	"github.com/gin-gonic/gin"
 	"github.com/mrhumster/web-server-gin/config"
-	"github.com/mrhumster/web-server-gin/handler"
+	"github.com/mrhumster/web-server-gin/internal/delivery/http/handler"
 	"github.com/mrhumster/web-server-gin/middleware"
 	"github.com/mrhumster/web-server-gin/repository"
 	"github.com/mrhumster/web-server-gin/service"

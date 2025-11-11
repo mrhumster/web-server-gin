@@ -19,10 +19,6 @@ import (
 	"gorm.io/gorm"
 )
 
-func strPtr(s string) *string {
-	return &s
-}
-
 func setupTest() (*gin.Engine, *gorm.DB) {
 	db := testutils.GetTestDB()
 	router := routes.SetupRoutes(db, "debug")
