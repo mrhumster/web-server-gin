@@ -3,7 +3,7 @@ package models
 import (
 	"log"
 
-	"github.com/mrhumster/web-server-gin/dto/request"
+	"github.com/mrhumster/web-server-gin/internal/delivery/http/dto/request"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )

@@ -7,7 +7,7 @@ import (
 	"sync"
 
 	"github.com/jackc/pgx/v5/pgconn"
-	"github.com/mrhumster/web-server-gin/dto/request"
+	"github.com/mrhumster/web-server-gin/internal/delivery/http/dto/request"
 	"github.com/mrhumster/web-server-gin/models"
 	"github.com/mrhumster/web-server-gin/repository"
 	"gorm.io/gorm"

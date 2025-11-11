@@ -3,7 +3,7 @@ package models
 import (
 	"testing"
 
-	"github.com/mrhumster/web-server-gin/dto/request"
+	"github.com/mrhumster/web-server-gin/internal/delivery/http/dto/request"
 	"github.com/stretchr/testify/assert"
 )
 

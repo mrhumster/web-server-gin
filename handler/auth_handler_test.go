@@ -10,8 +10,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"github.com/mrhumster/web-server-gin/dto/request"
-	"github.com/mrhumster/web-server-gin/dto/response"
+	"github.com/mrhumster/web-server-gin/internal/delivery/http/dto/request"
+	"github.com/mrhumster/web-server-gin/internal/delivery/http/dto/response"
 	"github.com/mrhumster/web-server-gin/tests/testutils"
 	"github.com/stretchr/testify/assert"
 )
