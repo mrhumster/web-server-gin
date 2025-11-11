@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	permissionpb "github.com/mrhumster/web-server-gin/proto/gen/go/permission"
+	permissionpb "github.com/mrhumster/web-server-gin/gen/go/permission"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )

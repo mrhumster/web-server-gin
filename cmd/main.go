@@ -14,11 +14,11 @@ import (
 	"github.com/casbin/casbin/v2"
 	gormadapter "github.com/casbin/gorm-adapter/v3"
 	"github.com/mrhumster/web-server-gin/config"
+	permissionpb "github.com/mrhumster/web-server-gin/gen/go/permission"
 	"github.com/mrhumster/web-server-gin/internal/database"
 	"github.com/mrhumster/web-server-gin/internal/delivery/http/routes"
 	"github.com/mrhumster/web-server-gin/internal/permission"
 	"github.com/mrhumster/web-server-gin/internal/service"
-	permissionpb "github.com/mrhumster/web-server-gin/proto/gen/go/permission"
 	"google.golang.org/grpc"
 )
 
