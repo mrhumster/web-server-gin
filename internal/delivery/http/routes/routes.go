@@ -1,9 +1,11 @@
 package routes
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/casbin/casbin/v2"
 	gormadapter "github.com/casbin/gorm-adapter/v3"
@@ -67,9 +69,38 @@ func SetupRoutes(db *gorm.DB, mode string, permissionClient *auth.PermissionClie
 	commonHandler := handler.NewCommonHandler(tokenService)
 
 	// PERMISSIONS
-	permissionService.AddPolicyIfNotExists("admin", "*", "*")
-	permissionService.AddPolicyIfNotExists("member", "users", "read")
-	permissionService.AddPolicyIfNotExists("*", "users", "read")
+
+	type permission struct {
+		sub string
+		obj string
+		act string
+	}
+
+	policies := []struct {
+		params permission
+		desc   string
+	}{
+		{permission{"*", "users", "read"}, "users read policy"},
+		{permission{"*", "stream", "read"}, "stream read policy"},
+	}
+
+	for _, policy := range policies {
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+
+		_, err := permissionClient.Client.AddPolicyIfNotExists(ctx,
+			policy.params.sub,
+			policy.params.obj,
+			policy.params.act,
+		)
+
+		cancel()
+
+		if err != nil {
+			log.Printf("⚠️ Failed to add %s: %v", policy.desc, err)
+		} else {
+			log.Printf("✅ Successfully added %s", policy.desc)
+		}
+	}
 
 	// ROUTE
 	r.POST("/api/login", authHandler.Login)
