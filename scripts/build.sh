@@ -1,12 +1,8 @@
 #!/bin/bash
-
-if [ -z "$1" ]; then
-  echo "❔ Please set version. 1.0.1, 1.0.2"
-  exit 1
-fi
-
 VER=$1
-
+if [ -z "$1" ]; then
+  VER=$(git rev-parse HEAD)
+fi
 PROJECTDIR=/home/xomrkob/projects/web-server-gin/
 echo "🔨 docker build..."
 docker build \
@@ -23,7 +19,7 @@ else
   exit 1
 fi
 
-echo "⬆️docker push..."
+echo "🚀 docker push..."
 docker push xomrkob/web-server-gin:$VER
 
 if [ $? -eq 0 ]; then
