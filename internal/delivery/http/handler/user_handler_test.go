@@ -326,7 +326,7 @@ func TestUserHandler_Response_IncludeAllFields(t *testing.T) {
 
 func TestUserHandler_UpdateUser(t *testing.T) {
 	router, _ := setupTest()
-	//	defer testutils.CleanTestDatabase()
+	defer testutils.CleanTestDatabase()
 
 	resp, err := createUserRequest(router, "password", "testuser1@test.local")
 	if err != nil {

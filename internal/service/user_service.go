@@ -74,8 +74,11 @@ func (s *UserService) DeleteUser(ctx context.Context, id uuid.UUID) error {
 	if err == nil {
 		policy := fmt.Sprintf("%s", id)
 		resource := fmt.Sprintf("users/%s", id.String())
-		s.permissionService.RemovePolicy(policy, resource, "delete")
+		s.permissionService.RemovePolicy(policy, resource, "read")
 		s.permissionService.RemovePolicy(policy, resource, "write")
+		s.permissionService.RemovePolicy(policy, resource, "delete")
+		s.permissionService.RemovePolicy(policy, "users", "read")
+
 	}
 	return err
 
