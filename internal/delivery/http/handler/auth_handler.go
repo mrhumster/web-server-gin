@@ -136,7 +136,7 @@ func (a *AuthHandler) LogoutAll(c *gin.Context) {
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, response.ErrorResponse("imvalid user id in claim"))
 	}
-	err = a.UserService.UpdateTokenVersion(c, id.String(), generateNewTokenVersion())
+	err = a.UserService.UpdateTokenVersion(c, &id, generateNewTokenVersion())
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, response.ErrorResponse("failed to logout"))
 		return

@@ -108,7 +108,7 @@ func (r *UserRepository) Exists(ctx context.Context, id uuid.UUID) bool {
 	return u != nil
 }
 
-func (r *UserRepository) UpdateTokenVersion(ctx context.Context, userID string, version string) error {
+func (r *UserRepository) UpdateTokenVersion(ctx context.Context, userID *uuid.UUID, version string) error {
 	var userForUpdate *models.User
 	result := r.db.WithContext(ctx).First(&userForUpdate, userID)
 	if result.Error != nil {
