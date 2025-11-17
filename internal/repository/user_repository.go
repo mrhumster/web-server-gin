@@ -2,7 +2,7 @@ package repository
 
 import (
 	"context"
-
+	"github.com/google/uuid"
 	"github.com/mrhumster/web-server-gin/internal/delivery/http/dto/request"
 	"github.com/mrhumster/web-server-gin/internal/domain/models"
 	"github.com/sony/gobreaker"
@@ -39,15 +39,15 @@ func NewUserRepository(db *gorm.DB) *UserRepository {
 	return &UserRepository{db: db}
 }
 
-func (r *UserRepository) CreateUser(ctx context.Context, user models.User) (uint, error) {
+func (r *UserRepository) CreateUser(ctx context.Context, user models.User) (*uuid.UUID, error) {
 	result := r.db.WithContext(ctx).Create(&user)
 	if result.Error != nil {
-		return 0, result.Error
+		return nil, result.Error
 	}
-	return user.ID, nil
+	return &user.ID, nil
 }
 
-func (r *UserRepository) ReadUserByID(ctx context.Context, id uint) (*models.User, error) {
+func (r *UserRepository) ReadUserByID(ctx context.Context, id uuid.UUID) (*models.User, error) {
 	var user *models.User
 	result := r.db.WithContext(ctx).First(&user, id)
 	if result.Error != nil {
@@ -56,21 +56,21 @@ func (r *UserRepository) ReadUserByID(ctx context.Context, id uint) (*models.Use
 	return user, nil
 }
 
-func (r *UserRepository) UpdateUser(ctx context.Context, id uint, user request.UpdateUserRequest) (uint, error) {
+func (r *UserRepository) UpdateUser(ctx context.Context, id uuid.UUID, user request.UpdateUserRequest) (*uuid.UUID, error) {
 	var userForUpdate *models.User
 	result := r.db.WithContext(ctx).First(&userForUpdate, id)
 	if result.Error != nil {
-		return 0, result.Error
+		return nil, result.Error
 	}
 	userForUpdate.FillInTheUpdateRequest(user)
 	result = r.db.WithContext(ctx).Save(&userForUpdate)
 	if result.Error != nil {
-		return 0, result.Error
+		return nil, result.Error
 	}
-	return userForUpdate.ID, nil
+	return &userForUpdate.ID, nil
 }
 
-func (r *UserRepository) DeleteUserByID(ctx context.Context, id uint) error {
+func (r *UserRepository) DeleteUserByID(ctx context.Context, id uuid.UUID) error {
 	result := r.db.WithContext(ctx).Delete(&models.User{}, id)
 	return result.Error
 }
@@ -103,7 +103,7 @@ func (r *UserRepository) ReadUserByEmail(ctx context.Context, value string) (*mo
 	return &user, nil
 }
 
-func (r *UserRepository) Exists(ctx context.Context, id uint) bool {
+func (r *UserRepository) Exists(ctx context.Context, id uuid.UUID) bool {
 	u, _ := r.ReadUserByID(ctx, id)
 	return u != nil
 }
@@ -114,7 +114,7 @@ func (r *UserRepository) UpdateTokenVersion(ctx context.Context, userID uint64, 
 	if result.Error != nil {
 		return result.Error
 	}
-	userForUpdate.TokenVersion = &version
+	userForUpdate.TokenVersion = version
 	result = r.db.WithContext(ctx).Save(&userForUpdate)
 	return result.Error
 }

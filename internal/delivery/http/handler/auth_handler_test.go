@@ -40,13 +40,16 @@ func TestAuthHandler_Login_Success(t *testing.T) {
 	login := fmt.Sprintf("testuser-%s", uuid.New().String())
 	password := uuid.New().String()
 	email := fmt.Sprintf("%s@test.local", login)
-	resp1 := createUserRequest(router, login, password, email)
+	resp1, _ := createUserRequest(router, password, email)
 	assert.Equal(t, http.StatusCreated, resp1.Code)
 
 	loginReq := request.LoginRequest{
 		Email:    email,
 		Password: password,
 	}
-	response, _ := AuthByLogin(router, loginReq.Email, loginReq.Password)
+	response, err := AuthByLogin(router, loginReq.Email, loginReq.Password)
+	if err != nil {
+		t.Errorf("⚠️ Login error %v", err)
+	}
 	assert.NotEmpty(t, response.AccessToken)
 }

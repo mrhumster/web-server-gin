@@ -54,9 +54,8 @@ func NewTokenService(cfg *config.JWT) (*TokenService, error) {
 func (s *TokenService) GenerateToken(user *models.User) (*models.TokenPair, error) {
 	accessExpiresAt := time.Now().Add(s.accessExpiry)
 	accessClaims := &models.AccessClaims{
-		UserID:   fmt.Sprintf("%d", user.ID),
-		Username: *user.Login,
-		Role:     *user.Role,
+		UserID: fmt.Sprintf("%s", user.ID),
+		Role:   user.Role,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(accessExpiresAt),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
@@ -71,7 +70,7 @@ func (s *TokenService) GenerateToken(user *models.User) (*models.TokenPair, erro
 	refreshExpiresAt := time.Now().Add(s.refreshExpiry)
 	refreshClaims := &models.RefreshClaims{
 		UserID:       fmt.Sprintf("%d", user.ID),
-		TokenVersion: *user.TokenVersion,
+		TokenVersion: user.TokenVersion,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(refreshExpiresAt),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),

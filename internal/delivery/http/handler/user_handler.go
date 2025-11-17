@@ -6,6 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
+	"github.com/google/uuid"
 	"github.com/mrhumster/web-server-gin/internal/delivery/http/dto/request"
 	"github.com/mrhumster/web-server-gin/internal/delivery/http/dto/response"
 	"github.com/mrhumster/web-server-gin/internal/domain/models"
@@ -63,13 +64,13 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 func (h *UserHandler) ReadUser(c *gin.Context) {
 
 	strId := c.Param("id")
-	id, err := strconv.ParseUint(strId, 10, 64)
+	id, err := uuid.Parse(strId)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	user, err := h.service.ReadUser(c, uint(id))
+	user, err := h.service.ReadUser(c, id)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		c.Abort()
@@ -83,7 +84,7 @@ func (h *UserHandler) ReadUser(c *gin.Context) {
 func (h *UserHandler) Update(c *gin.Context) {
 
 	strId := c.Param("id")
-	id, err := strconv.ParseUint(strId, 10, 64)
+	id, err := uuid.Parse(strId)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
 		return
@@ -94,12 +95,12 @@ func (h *UserHandler) Update(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	_, err = h.service.UpdateUser(c, uint(id), user)
+	_, err = h.service.UpdateUser(c, id, user)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	updatedUser, err := h.service.ReadUser(c, uint(id))
+	updatedUser, err := h.service.ReadUser(c, id)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -112,13 +113,13 @@ func (h *UserHandler) Update(c *gin.Context) {
 func (h *UserHandler) Delete(c *gin.Context) {
 
 	strId := c.Param("id")
-	id, err := strconv.ParseUint(strId, 10, 64)
+	id, err := uuid.Parse(strId)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	err = h.service.DeleteUser(c, uint(id))
+	err = h.service.DeleteUser(c, id)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return

@@ -5,18 +5,14 @@ import (
 
 	"github.com/mrhumster/web-server-gin/internal/delivery/http/dto/request"
 	"golang.org/x/crypto/bcrypt"
-	"gorm.io/gorm"
 )
 
 type User struct {
-	gorm.Model
-	Login        *string `gorm:"uniqueIndex;not null" json:"login"`
-	Email        *string `gorm:"uniqueIndex;not nul" json:"email"`
-	PasswordHash *string `gorm:"not null" json:"-"`
-	Name         *string `gorm:"" json:"name"`
-	LastName     *string `gorm:"" json:"last_name"`
-	Role         *string `gorm:"" json:"role"`
-	TokenVersion *string `gorm:"default:'v1'"`
+	BaseModel
+	Email        string `gorm:"uniqueIndex;not null" json:"email"`
+	PasswordHash string `gorm:"not null" json:"-"`
+	Role         string `gorm:"" json:"role"`
+	TokenVersion string `gorm:"default:'v1'"`
 }
 
 func (User) TableName() string {
@@ -29,40 +25,26 @@ func (u *User) SetPassword(password string) error {
 		return err
 	}
 	hash := string(hashedBytes)
-	u.PasswordHash = &hash
+	u.PasswordHash = hash
 	return nil
 }
 
 func (u *User) CheckPassword(password string) bool {
-	hashedBytes := []byte(*u.PasswordHash)
+	hashedBytes := []byte(u.PasswordHash)
 	err := bcrypt.CompareHashAndPassword(hashedBytes, []byte(password))
 	return err == nil
 }
 
 func (u *User) FillInTheRequest(r request.UserRequest) {
-	u.Login = &r.Login
-	u.Email = &r.Email
-	u.Name = &r.Name
-	u.LastName = &r.LastName
+	u.Email = r.Email
 	u.SetPassword(r.Password)
 }
 
 func (u *User) FillInTheUpdateRequest(r request.UpdateUserRequest) {
-	if r.Name != nil {
-		u.Name = r.Name
-	}
-
-	if r.LastName != nil {
-		u.LastName = r.LastName
-	}
-
-	if r.Email != nil {
-		u.Email = r.Email
-	}
+	u.Email = r.Email
 }
 
 func (u *User) Debug() {
-	log.Printf("👤 Login: %s", *u.Login)
-	log.Printf("\tEmail: %s", *u.Email)
-	log.Printf("\tPasswordHash: %s", *u.PasswordHash)
+	log.Printf("\tEmail: %s", u.Email)
+	log.Printf("\tPasswordHash: %s", u.PasswordHash)
 }

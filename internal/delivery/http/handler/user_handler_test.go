@@ -35,23 +35,26 @@ func setupTest() (*gin.Engine, *gorm.DB) {
 	return router, db
 }
 
-func createUserRequest(router *gin.Engine, login, password, email string) *httptest.ResponseRecorder {
+func createUserRequest(router *gin.Engine, password, email string) (*httptest.ResponseRecorder, error) {
 	user := request.UserRequest{
-		Login:    login,
 		Password: password,
 		Email:    email,
-		Name:     login,
-		LastName: login,
 	}
 
 	userJSON, _ := json.Marshal(user)
-	req, _ := http.NewRequest("POST", "/api/users", bytes.NewBuffer(userJSON))
+	req, err := http.NewRequest("POST", "/api/users", bytes.NewBuffer(userJSON))
+	if err != nil {
+		return nil, err
+	}
 	req.Header.Set("Content-Type", "application/json")
 	resp := httptest.NewRecorder()
 	router.ServeHTTP(resp, req)
 	var body map[string]interface{}
-	json.Unmarshal(resp.Body.Bytes(), &body)
-	return resp
+	err = json.Unmarshal(resp.Body.Bytes(), &body)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
 }
 
 func LoginAndGetToken(router *gin.Engine, email, password string) string {
@@ -71,7 +74,6 @@ func TestUserHandler_Success(t *testing.T) {
 	defer testutils.CleanTestDatabase()
 
 	user := request.UserRequest{
-		Login:    "testuser9",
 		Password: "testuser",
 		Email:    "testuser9@test.local",
 	}
@@ -94,10 +96,14 @@ func TestUserHandler_Success(t *testing.T) {
 func TestUserHandler_DiplucateLogin(t *testing.T) {
 	router, _ := setupTest()
 	defer testutils.CleanTestDatabase()
-	resp1 := createUserRequest(router, "testuser", "password1", "testuser@test.local")
+	resp1, err := createUserRequest(router, "password1", "testuser@test.local")
+	if err != nil {
+		t.Errorf("⚠️ %v", err)
+	}
 	assert.Equal(t, http.StatusCreated, resp1.Code)
 
-	resp2 := createUserRequest(router, "testuser", "password2", "testuser@test.local")
+	resp2, err := createUserRequest(router, "password2", "testuser@test.local")
+	log.Printf("🐞 resp = %v, err = %v", resp2, err)
 	assert.Equal(t, http.StatusConflict, resp2.Code)
 
 	var response map[string]any
@@ -108,7 +114,7 @@ func TestUserHandler_DiplucateLogin(t *testing.T) {
 func TestUserHandler_EmptyPassword(t *testing.T) {
 	router, _ := setupTest()
 	defer testutils.CleanTestDatabase()
-	resp1 := createUserRequest(router, "testuser", "", "testuser@test.local")
+	resp1, _ := createUserRequest(router, "", "testuser@test.local")
 
 	assert.Equal(t, http.StatusBadRequest, resp1.Code)
 
@@ -136,12 +142,19 @@ func TestUserHandler_InvalidDate(t *testing.T) {
 func TestUserHandler_ReadUser_InvalidID(t *testing.T) {
 	router, _ := setupTest()
 	defer testutils.CleanTestDatabase()
-	resp := createUserRequest(router, "testuser", "password", "testuser@test.local")
-	loginResponse, _ := AuthByLogin(router, "testuser@test.local", "password")
+	resp, _ := createUserRequest(router, "password", "testuser@test.local")
+	loginResponse, err := AuthByLogin(router, "testuser@test.local", "password")
+	if err != nil {
+		t.Errorf("⚠️  Login error: %v", err)
+	}
 	var repsonse1 map[string]any
 	json.Unmarshal(resp.Body.Bytes(), &repsonse1)
 	userID := repsonse1["id"]
-	req, _ := http.NewRequest("GET", fmt.Sprintf("/api/users/%.0f", userID), nil)
+	log.Printf("TestUserHandler_ReadUser_InvalidID: %s", userID)
+	req, err := http.NewRequest("GET", fmt.Sprintf("/api/users/%s", userID), nil)
+	if err != nil {
+		t.Errorf("Request error: %v", err)
+	}
 	req.Header.Set("Authorization", loginResponse.GetTokenAsBearerHeader())
 	resp = httptest.NewRecorder()
 	router.ServeHTTP(resp, req)
@@ -163,12 +176,12 @@ func TestUserHandler_ReadUser_InvalidID(t *testing.T) {
 func TestUserHandler_DeleteUser(t *testing.T) {
 	router, _ := setupTest()
 	defer testutils.CleanTestDatabase()
-	resp := createUserRequest(router, "testuser", "password", "testuser@test.local")
+	resp, _ := createUserRequest(router, "password", "testuser@test.local")
 	loginReponse, _ := AuthByLogin(router, "testuser@test.local", "password")
 	var response map[string]any
 	json.Unmarshal(resp.Body.Bytes(), &response)
 
-	req, _ := http.NewRequest("DELETE", fmt.Sprintf("/api/users/%.0f", response["id"]), nil)
+	req, _ := http.NewRequest("DELETE", fmt.Sprintf("/api/users/%s", response["id"]), nil)
 	req.Header.Set("Authorization", loginReponse.GetTokenAsBearerHeader())
 	resp = httptest.NewRecorder()
 	router.ServeHTTP(resp, req)
@@ -190,7 +203,7 @@ func TestUserHandler_ReadUsers(t *testing.T) {
 	router, _ := setupTest()
 	defer testutils.CleanTestDatabase()
 	for i := range total {
-		createUserRequest(router, fmt.Sprintf("testuser%d", i), "password", fmt.Sprintf("testuser%d@test.local", i))
+		createUserRequest(router, "password", fmt.Sprintf("testuser%d@test.local", i))
 	}
 
 	req, _ := http.NewRequest("GET", "/api/users", nil)
@@ -229,7 +242,7 @@ func TestUserHandler_ReadUsers(t *testing.T) {
 func TestUserHandler_ReadUsers_QueryValidate(t *testing.T) {
 	router, _ := setupTest()
 	defer testutils.CleanTestDatabase()
-	createUserRequest(router, "testuser", "password", "testuser@test.local")
+	createUserRequest(router, "password", "testuser@test.local")
 	loginResponse, _ := AuthByLogin(router, "testuser@test.local", "password")
 	req, _ := http.NewRequest("GET", "/api/users?page=-1&limit=s", nil)
 	req.Header.Set("Authorization", loginResponse.GetTokenAsBearerHeader())
@@ -252,24 +265,42 @@ func TestUserHandler_ReadUsers_QueryValidate(t *testing.T) {
 func TestUserHandler_UserResponseIncludeEmail(t *testing.T) {
 	router, _ := setupTest()
 	defer testutils.CleanTestDatabase()
-	resp := createUserRequest(router, "testuser1", "password", "testuser1@test.local")
-	loginResponse, _ := AuthByLogin(router, "testuser1@test.local", "password")
+	resp, err := createUserRequest(router, "password", "testuser1@test.local")
+	if err != nil {
+		t.Errorf("Create user request error: %v", err)
+	}
+	var createUserBody map[string]any
+
+	json.Unmarshal(resp.Body.Bytes(), &createUserBody)
+	t.Errorf("🐞 %v", createUserBody)
+	loginResponse, err := AuthByLogin(router, "testuser1@test.local", "password")
+	if err != nil {
+		t.Errorf("Create user request error: %v", err)
+	}
+
 	var respMap map[string]any
 	json.Unmarshal(resp.Body.Bytes(), &respMap)
-	req, _ := http.NewRequest("GET", fmt.Sprintf("/api/users/%.0f", respMap["id"]), nil)
+	req, err := http.NewRequest("GET", fmt.Sprintf("/api/users/%s", respMap["id"]), nil)
+	if err != nil {
+		t.Errorf("Create user request error: %v", err)
+	}
+
 	req.Header.Set("Authorization", loginResponse.GetTokenAsBearerHeader())
 	resp = httptest.NewRecorder()
 	router.ServeHTTP(resp, req)
+	if resp.Code == http.StatusForbidden {
+		t.Errorf("🐞 Forbidden: token: %s\n\t user id: %s", loginResponse.GetTokenAsBearerHeader(), createUserBody["userId"])
+	}
 	json.Unmarshal(resp.Body.Bytes(), &respMap)
-
+	log.Printf("🐞 %v", respMap)
 	assert.Contains(t, respMap, "email")
 }
 
 func TestUserHandler_EmailIsUniq(t *testing.T) {
 	router, _ := setupTest()
 	defer testutils.CleanTestDatabase()
-	createUserRequest(router, "testuser1", "password", "testuser1@test.local")
-	resp := createUserRequest(router, "testuser2", "password", "testuser1@test.local")
+	createUserRequest(router, "password", "testuser1@test.local")
+	resp, _ := createUserRequest(router, "password", "testuser1@test.local")
 	assert.Equal(t, http.StatusConflict, resp.Code)
 	var respMap map[string]any
 	json.Unmarshal(resp.Body.Bytes(), &respMap)
@@ -281,60 +312,48 @@ func TestUserHandler_EmailIsUniq(t *testing.T) {
 func TestUserHandler_Response_IncludeAllFields(t *testing.T) {
 	router, _ := setupTest()
 	defer testutils.CleanTestDatabase()
-	resp := createUserRequest(router, "testuser1", "password", "testuser1@test.local")
+	resp, _ := createUserRequest(router, "password", "testuser1@test.local")
 	loginResponse, _ := AuthByLogin(router, "testuser1@test.local", "password")
 	var body map[string]interface{}
 	json.Unmarshal(resp.Body.Bytes(), &body)
 	userId := body["id"]
-	req, _ := http.NewRequest("GET", fmt.Sprintf("/api/users/%.0f", userId), nil)
+	req, _ := http.NewRequest("GET", fmt.Sprintf("/api/users/%s", userId), nil)
 	req.Header.Set("Authorization", loginResponse.GetTokenAsBearerHeader())
 	resp = httptest.NewRecorder()
 	router.ServeHTTP(resp, req)
 	json.Unmarshal(resp.Body.Bytes(), &body)
-	assert.Contains(t, body, "name")
-	assert.NotEmpty(t, body["name"])
-	assert.Contains(t, body, "last_name")
-	assert.NotEmpty(t, body["last_name"])
 }
 
 func TestUserHandler_UpdateUser(t *testing.T) {
 	router, _ := setupTest()
-	defer testutils.CleanTestDatabase()
+	//	defer testutils.CleanTestDatabase()
 
-	resp := createUserRequest(router, "testuser1", "password", "testuser1@test.local")
-	loginResponse, _ := AuthByLogin(router, "testuser1@test.local", "password")
-
+	resp, err := createUserRequest(router, "password", "testuser1@test.local")
+	if err != nil {
+		t.Errorf("UpdateUser error: %v", err)
+	}
+	loginResponse, err := AuthByLogin(router, "testuser1@test.local", "password")
+	if err != nil {
+		t.Errorf("UpdateUser error: %v", err)
+	}
 	var body, updatedBody map[string]any
 	json.Unmarshal(resp.Body.Bytes(), &body)
 
 	var userUpdate request.UpdateUserRequest
 
-	name := "Larry"
-	lastNmae := "Coat"
-	userUpdate.Name = &name
-	userUpdate.LastName = &lastNmae
-
-	userJson, _ := json.Marshal(userUpdate)
-
-	req, _ := http.NewRequest("PATCH", fmt.Sprintf("/api/users/%.0f", body["id"]), bytes.NewBuffer(userJson))
+	userJson, err := json.Marshal(userUpdate)
+	if err != nil {
+		t.Errorf("UpdateUser error: %v", err)
+	}
+	req, err := http.NewRequest("PATCH", fmt.Sprintf("/api/users/%s", body["id"]), bytes.NewBuffer(userJson))
 	req.Header.Set("Authorization", loginResponse.GetTokenAsBearerHeader())
-	log.Printf("⚠️ %#v", loginResponse)
+	if err != nil {
+		t.Errorf("UpdateUser error: %v", err)
+	}
 	resp = httptest.NewRecorder()
 	router.ServeHTTP(resp, req)
 	json.Unmarshal(resp.Body.Bytes(), &updatedBody)
-	v, exist := updatedBody["error"]
-	if exist {
-		log.Printf("⚠️ DEBUG: ERROR %v", v)
-		assert.True(t, false)
-		return
-	}
 	assert.Equal(t, http.StatusOK, resp.Code)
-	assert.Contains(t, updatedBody, "name")
-	assert.Equal(t, updatedBody["name"], "Larry")
-	assert.Contains(t, updatedBody, "last_name")
-	assert.Equal(t, updatedBody["last_name"], "Coat")
-	assert.Contains(t, updatedBody, "login")
-	assert.Equal(t, updatedBody["login"], "testuser1")
 	assert.Contains(t, updatedBody, "email")
 	assert.Equal(t, updatedBody["email"], "testuser1@test.local")
 }

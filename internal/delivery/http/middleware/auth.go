@@ -28,33 +28,6 @@ func AuthMiddleware(tokenService *service.TokenService) gin.HandlerFunc {
 	}
 }
 
-/*
-func Authorize(obj string, act string, p *service.PermissionService) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		userIDinterface, exists := c.Get("userID")
-		userID := fmt.Sprintf("%v", userIDinterface)
-		if !exists {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, response.ErrorResponse("User hasn't logged in yet"))
-			return
-		}
-
-		resourceID := c.Param("id")
-
-		fullResource := obj
-		if resourceID != "" {
-			fullResource = fmt.Sprintf("%s/%s", obj, resourceID)
-		}
-
-		if ok, _ := p.CheckPermission(userID, fullResource, act); !ok {
-			c.AbortWithStatusJSON(http.StatusForbidden, response.ErrorResponse("Access denied"))
-			return
-		}
-
-		c.Next()
-	}
-}
-*/
-
 func Authorize(obj string, act string, client *auth.PermissionClient) gin.HandlerFunc {
 	return middleware.Authorize(client, obj, act)
 }

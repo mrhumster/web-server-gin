@@ -2,12 +2,12 @@ package handler
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"github.com/mrhumster/web-server-gin/internal/delivery/http/dto/request"
 	"github.com/mrhumster/web-server-gin/internal/delivery/http/dto/response"
 	"github.com/mrhumster/web-server-gin/internal/domain/models"
@@ -87,13 +87,12 @@ func (a *AuthHandler) Refresh(c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusUnauthorized, response.ErrorResponse("invalid refresh token"))
 		return
 	}
-	userID, err := strconv.ParseUint(claims.UserID, 10, 64)
+	userID, err := uuid.Parse(claims.UserID)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusUnauthorized, response.ErrorResponse("invalid user id in claim"))
 	}
-	u, err := a.UserService.ReadUser(c, uint(userID))
-	if err != nil || *u.TokenVersion != claims.TokenVersion {
-		log.Printf("⚠️ AUTH HANDLER: User Token ver %v; claims token ver %v", *u.TokenVersion, claims.TokenVersion)
+	u, err := a.UserService.ReadUser(c, userID)
+	if err != nil || u.TokenVersion != claims.TokenVersion {
 		c.AbortWithStatusJSON(http.StatusUnauthorized, response.ErrorResponse("token revoke"))
 		return
 	}

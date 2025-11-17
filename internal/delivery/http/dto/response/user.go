@@ -3,15 +3,13 @@ package response
 import (
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/mrhumster/web-server-gin/internal/domain/models"
 )
 
 type UserResponse struct {
-	ID        uint      `json:"id"`
-	Login     string    `json:"login"`
+	ID        uuid.UUID `json:"id"`
 	Email     string    `json:"email"`
-	Name      string    `json:"name"`
-	LastName  string    `json:"last_name"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 }
@@ -25,10 +23,7 @@ type UsersListReponse struct {
 
 func (u *UserResponse) FillInTheModel(m *models.User) {
 	u.ID = m.ID
-	u.Login = *m.Login
-	u.Email = *m.Email
+	u.Email = m.Email
 	u.CreatedAt = m.CreatedAt
 	u.UpdatedAt = m.UpdatedAt
-	u.Name = *m.Name
-	u.LastName = *m.LastName
 }

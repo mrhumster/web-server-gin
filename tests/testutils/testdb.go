@@ -29,12 +29,14 @@ func InitTestDB() *gorm.DB {
 		log.Fatalf("🔴 Failed to connect test database")
 	}
 	log.Printf("🟢 Connected to test database successfully")
+	log.Printf("Creating `uuid-ossp` extension...")
+	TestDB.Exec("CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\"")
 
 	err = TestDB.AutoMigrate(
 		&models.User{},
 	)
 	if err != nil {
-		log.Fatalf("🔴 Failed apply migrations")
+		log.Fatalf("🔴 Failed apply migrations: %v", err)
 	}
 	log.Printf("🟢 Migrations apply")
 	return TestDB

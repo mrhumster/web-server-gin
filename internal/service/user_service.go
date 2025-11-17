@@ -4,8 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 	"sync"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/mrhumster/web-server-gin/internal/delivery/http/dto/request"
 	"github.com/mrhumster/web-server-gin/internal/domain/models"
@@ -18,10 +20,6 @@ var (
 	ErrUserNotFount      = errors.New("user not found")
 )
 
-func strPtr(s string) *string {
-	return &s
-}
-
 type UserService struct {
 	repo              *repository.UserRepository
 	permissionService *PermissionService
@@ -32,48 +30,52 @@ func NewUserService(repo *repository.UserRepository, perm *PermissionService) *U
 	return &UserService{repo: repo, permissionService: perm}
 }
 
-func (s *UserService) CreateUser(ctx context.Context, user models.User) (uint, error) {
-	if user.Role == nil {
+func (s *UserService) CreateUser(ctx context.Context, user models.User) (*uuid.UUID, error) {
+	if user.Role == "" {
 		role := "member"
-		user.Role = &role
+		user.Role = role
 	}
 	id, err := s.repo.CreateUser(ctx, user)
 	if err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) {
 			if pgErr.Code == "23505" {
-				return 0, ErrUserAlreadyExists
+				return nil, ErrUserAlreadyExists
 			}
 		}
 		if errors.Is(err, gorm.ErrDuplicatedKey) {
-			return 0, ErrUserAlreadyExists
+			return nil, ErrUserAlreadyExists
 		}
-		return 0, err
+		return nil, err
 	}
 
 	s.mu.Lock()
-	policy := fmt.Sprintf("%d", id)
-	resource := fmt.Sprintf("users/%d", id)
-	s.permissionService.AddPolicy(policy, resource, "*")
+	policy := id.String()
+	resource := fmt.Sprintf("users/%s", id.String())
+	log.Printf("⚠️ UserService. CreateUser Permission debug: %s %s", policy, resource)
+	s.permissionService.AddPolicy(policy, resource, "read")
+	s.permissionService.AddPolicy(policy, resource, "write")
+	s.permissionService.AddPolicy(policy, resource, "delete")
 	s.permissionService.AddPolicy(policy, "users", "read")
 	s.mu.Unlock()
 	return id, nil
 }
 
-func (s *UserService) ReadUser(ctx context.Context, id uint) (*models.User, error) {
+func (s *UserService) ReadUser(ctx context.Context, id uuid.UUID) (*models.User, error) {
 	return s.repo.ReadUserByID(ctx, id)
 }
 
-func (s *UserService) UpdateUser(ctx context.Context, id uint, user request.UpdateUserRequest) (uint, error) {
+func (s *UserService) UpdateUser(ctx context.Context, id uuid.UUID, user request.UpdateUserRequest) (*uuid.UUID, error) {
 	return s.repo.UpdateUser(ctx, id, user)
 }
 
-func (s *UserService) DeleteUser(ctx context.Context, id uint) error {
+func (s *UserService) DeleteUser(ctx context.Context, id uuid.UUID) error {
 	err := s.repo.DeleteUserByID(ctx, id)
 	if err == nil {
-		policy := fmt.Sprintf("users:%d", id)
-		resource := fmt.Sprintf("users/%d", id)
-		s.permissionService.RemovePolicy(policy, resource, "*")
+		policy := fmt.Sprintf("%s", id)
+		resource := fmt.Sprintf("users/%s", id.String())
+		s.permissionService.RemovePolicy(policy, resource, "delete")
+		s.permissionService.RemovePolicy(policy, resource, "write")
 	}
 	return err
 

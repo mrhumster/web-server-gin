@@ -15,15 +15,13 @@ func TestTokenService_GenerateAndValidateToken(t *testing.T) {
 	cfg, _ := config.TestConfig()
 	service, _ := NewTokenService(&cfg.JWT)
 
-	login := "testuser"
 	email := "testuser@test.local"
 	role := "member"
 	tokenVersion := "1"
 	user := &models.User{
-		Login:        &login,
-		Email:        &email,
-		Role:         &role,
-		TokenVersion: &tokenVersion,
+		Email:        email,
+		Role:         role,
+		TokenVersion: tokenVersion,
 	}
 
 	token, err := service.GenerateToken(user)
@@ -32,8 +30,7 @@ func TestTokenService_GenerateAndValidateToken(t *testing.T) {
 
 	claims, err := service.ValidateAccessToken(token.AccessToken)
 	assert.NoError(t, err)
-	assert.Equal(t, fmt.Sprintf("%d", user.ID), claims.UserID)
-	assert.Equal(t, *user.Login, claims.Username)
+	assert.Equal(t, fmt.Sprintf("%s", user.ID), claims.UserID)
 	assert.Equal(t, "auth-service", claims.Issuer)
 }
 
@@ -45,8 +42,7 @@ func TestTokenService_ValidateToken_Invalid(t *testing.T) {
 	assert.Error(t, err)
 
 	claims := &models.AccessClaims{
-		UserID:   "123",
-		Username: "testuser",
+		UserID: "123",
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(-time.Hour)),
 			Issuer:    "test-issuer",
