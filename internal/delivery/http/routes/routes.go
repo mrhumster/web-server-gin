@@ -82,6 +82,7 @@ func SetupRoutes(db *gorm.DB, mode string, permissionClient *auth.PermissionClie
 	}{
 		{permission{"*", "users", "read"}, "users read policy"},
 		{permission{"*", "stream", "read"}, "stream read policy"},
+		{permission{"*", "stream", "write"}, "stream write policy"},
 	}
 
 	for _, policy := range policies {
