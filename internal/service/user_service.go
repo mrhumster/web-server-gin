@@ -58,6 +58,7 @@ func (s *UserService) CreateUser(ctx context.Context, user models.User) (*uuid.U
 	s.permissionService.AddPolicy(policy, resource, "delete")
 	s.permissionService.AddPolicy(policy, "users", "read")
 	s.permissionService.AddPolicy(policy, "stream", "read")
+	s.permissionService.AddPolicy(policy, "stream", "write")
 	s.mu.Unlock()
 	return id, nil
 }
