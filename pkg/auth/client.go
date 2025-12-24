@@ -2,20 +2,16 @@ package auth
 
 import "github.com/mrhumster/web-server-gin/internal/permission"
 
-type PermissionClient struct {
-	Client *permission.PermissionGRPCClient
+type PermissionClientWrapper struct {
+	*permission.PermissionGRPCClient
 }
 
-func NewPermissionClient(url string) (*PermissionClient, error) {
+func NewPermissionClient(url string) (*PermissionClientWrapper, error) {
 	client, err := permission.NewPermissionGRPCClient(url)
 	if err != nil {
 		return nil, err
 	}
-	return &PermissionClient{
-		Client: client,
-	}, nil
+	return &PermissionClientWrapper{PermissionGRPCClient: client}, nil
 }
 
-func (c *PermissionClient) Close() {
-	c.Client.Close()
-}
+var _ PermissionClient = (*PermissionClientWrapper)(nil)

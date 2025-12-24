@@ -19,7 +19,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func SetupRoutes(db *gorm.DB, mode string, permissionClient *auth.PermissionClient) *gin.Engine {
+func SetupRoutes(db *gorm.DB, mode string, permissionClient auth.PermissionClient) *gin.Engine {
 
 	// MODE
 	if mode == "test" {
@@ -88,7 +88,7 @@ func SetupRoutes(db *gorm.DB, mode string, permissionClient *auth.PermissionClie
 	for _, policy := range policies {
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 
-		_, err := permissionClient.Client.AddPolicyIfNotExists(ctx,
+		_, err := permissionClient.AddPolicyIfNotExists(ctx,
 			policy.params.sub,
 			policy.params.obj,
 			policy.params.act,

@@ -54,7 +54,7 @@ func (c *PermissionGRPCClient) AddPolicy(ctx context.Context, userId, resource, 
 	return resp.Added, nil
 }
 
-func (c *PermissionGRPCClient) RemovPolicy(ctx context.Context, userId, resource, action string) (bool, error) {
+func (c *PermissionGRPCClient) RemovePolicy(ctx context.Context, userId, resource, action string) (bool, error) {
 	resp, err := c.service.RemovePolicy(ctx, &permission.RemovePolicyRequest{
 		Policy:     userId,
 		Resource:   resource,

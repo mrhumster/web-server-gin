@@ -10,7 +10,7 @@ import (
 	"github.com/mrhumster/web-server-gin/pkg/dto"
 )
 
-func Authorize(client *auth.PermissionClient, obj, act string) gin.HandlerFunc {
+func Authorize(client auth.PermissionClient, obj, act string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		userID, exists := c.Get("userID")
 		if !exists {
@@ -24,7 +24,8 @@ func Authorize(client *auth.PermissionClient, obj, act string) gin.HandlerFunc {
 			fullResource = fmt.Sprintf("%s/%s", obj, resourceID)
 		}
 		fmt.Printf("🐞 Authorize middleware: sub: %s; obj: %s; act: %s\n", userID, fullResource, act)
-		ok, err := client.Client.CheckPermission(c.Request.Context(), userID.(string), fullResource, act)
+
+		ok, err := client.CheckPermission(c.Request.Context(), userID.(string), fullResource, act)
 		if err != nil {
 			log.Fatal("⚠️ Authorize middleware error: ", err)
 			return
