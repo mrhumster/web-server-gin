@@ -52,7 +52,7 @@ func SetupRoutes(db *gorm.DB, mode string, permissionClient auth.PermissionClien
 	}
 
 	// REPOSITORIES
-	userRepo := repository.NewUserRepository(db)
+	userRepo := repository.NewGormUserRepository(db)
 	permissionService := service.NewPermissionService(enforcer)
 
 	// SERVICES

@@ -17,7 +17,7 @@ func TestUserService_Create(t *testing.T) {
 	}
 	defer testutils.CleanTestDatabase()
 
-	repo := repository.NewUserRepository(db)
+	repo := repository.NewGormUserRepository(db)
 	if repo == nil {
 		t.Fatal("UserRepository is nil")
 	}
@@ -33,7 +33,7 @@ func TestUserService_Create(t *testing.T) {
 func TestUserService_Validate(t *testing.T) {
 	db := testutils.GetTestDB()
 	defer testutils.CleanTestDatabase()
-	repo := repository.NewUserRepository(db)
+	repo := repository.NewGormUserRepository(db)
 	enforcer := testutils.GetEnforcer(db)
 	permissionService := NewPermissionService(enforcer)
 	service := NewUserService(repo, permissionService)

@@ -21,12 +21,12 @@ var (
 )
 
 type UserService struct {
-	repo              *repository.UserRepository
+	repo              repository.UserRepository
 	permissionService *PermissionService
 	mu                sync.RWMutex
 }
 
-func NewUserService(repo *repository.UserRepository, perm *PermissionService) *UserService {
+func NewUserService(repo repository.UserRepository, perm *PermissionService) *UserService {
 	return &UserService{repo: repo, permissionService: perm}
 }
 

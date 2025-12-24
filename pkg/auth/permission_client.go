@@ -1,3 +1,5 @@
+//go:generate mockgen -source=peromission_client.go -destination=./mock/permission_client_mock.go -package=mocks
+
 package auth
 
 import "context"

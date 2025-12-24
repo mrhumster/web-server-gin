@@ -25,7 +25,7 @@ func generateUniqueUser() models.User {
 func TestUserRepository_CreateRepo(t *testing.T) {
 	db := testutils.GetTestDB()
 	defer testutils.CleanTestDatabase()
-	repo := NewUserRepository(db)
+	repo := NewGormUserRepository(db)
 	ctx := context.Background()
 
 	t.Run("Create and Read user", func(t *testing.T) {
@@ -47,7 +47,7 @@ func TestUserRepository_CreateRepo(t *testing.T) {
 func TestUserRepository_ReadList(t *testing.T) {
 	db := testutils.GetTestDB()
 	defer testutils.CleanTestDatabase()
-	repo := NewUserRepository(db)
+	repo := NewGormUserRepository(db)
 	ctx := context.Background()
 	t.Run("Read userlist", func(t *testing.T) {
 		user := models.User{
@@ -71,7 +71,7 @@ func TestUserRepository_ReadList(t *testing.T) {
 func TestUserRepository_ReadByEmail(t *testing.T) {
 	db := testutils.GetTestDB()
 	defer testutils.CleanTestDatabase()
-	repo := NewUserRepository(db)
+	repo := NewGormUserRepository(db)
 	ctx := context.Background()
 	t.Run("Create user and get user by email", func(t *testing.T) {
 		user := models.User{
@@ -92,7 +92,7 @@ func TestUserRepository_ReadByEmail(t *testing.T) {
 func TestUserRepository_UserExist(t *testing.T) {
 	db := testutils.GetTestDB()
 	defer testutils.CleanTestDatabase()
-	repo := NewUserRepository(db)
+	repo := NewGormUserRepository(db)
 	ctx := context.Background()
 	t.Run("Create user and check that user exisr", func(t *testing.T) {
 		user := models.User{
