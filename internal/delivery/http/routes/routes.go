@@ -7,8 +7,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/casbin/casbin/v2"
-	gormadapter "github.com/casbin/gorm-adapter/v3"
 	"github.com/gin-gonic/gin"
 	"github.com/mrhumster/web-server-gin/config"
 	"github.com/mrhumster/web-server-gin/internal/delivery/http/handler"
@@ -38,25 +36,11 @@ func SetupRoutes(db *gorm.DB, mode string, permissionClient auth.PermissionClien
 		cfg, _ = config.TestConfig()
 	}
 
-	// DATABSE
-	adapter, err := gormadapter.NewAdapterByDB(db)
-	if err != nil {
-		panic(fmt.Sprintf("failed to initialize casbin adapter: %v", err))
-	}
-
-	// CASBIN RULES
-	enforcer, err := casbin.NewEnforcer(cfg.Server.CasbinModel, adapter)
-	if err != nil {
-		log.Printf("⚠️ Casbin Load Error, %s", err.Error())
-		panic("⚠️ Error loading roles config")
-	}
-
 	// REPOSITORIES
 	userRepo := repository.NewGormUserRepository(db)
-	permissionService := service.NewPermissionService(enforcer)
 
 	// SERVICES
-	userService := service.NewUserService(userRepo, permissionService)
+	userService := service.NewUserService(userRepo, permissionClient)
 	tokenService, err := service.NewTokenService(&cfg.JWT)
 	if err != nil {
 		fmt.Printf("⚠️ SetupRoutes: %v", err)

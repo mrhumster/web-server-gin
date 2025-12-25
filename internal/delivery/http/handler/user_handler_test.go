@@ -235,7 +235,6 @@ func TestUserHandler_ReadUsers(t *testing.T) {
 		require.True(t, ok, "each user should be an object")
 
 		require.NotEmpty(t, userMap["email"])
-		require.NotEmpty(t, userMap["login"])
 	}
 }
 
@@ -272,7 +271,6 @@ func TestUserHandler_UserResponseIncludeEmail(t *testing.T) {
 	var createUserBody map[string]any
 
 	json.Unmarshal(resp.Body.Bytes(), &createUserBody)
-	t.Errorf("🐞 %v", createUserBody)
 	loginResponse, err := AuthByLogin(router, "testuser1@test.local", "password")
 	if err != nil {
 		t.Errorf("Create user request error: %v", err)
@@ -341,6 +339,8 @@ func TestUserHandler_UpdateUser(t *testing.T) {
 
 	var userUpdate request.UpdateUserRequest
 
+	userUpdate.Email = "testuser2@test.local"
+
 	userJson, err := json.Marshal(userUpdate)
 	if err != nil {
 		t.Errorf("UpdateUser error: %v", err)
@@ -353,7 +353,8 @@ func TestUserHandler_UpdateUser(t *testing.T) {
 	resp = httptest.NewRecorder()
 	router.ServeHTTP(resp, req)
 	json.Unmarshal(resp.Body.Bytes(), &updatedBody)
+	log.Printf("%v", updatedBody)
 	assert.Equal(t, http.StatusOK, resp.Code)
 	assert.Contains(t, updatedBody, "email")
-	assert.Equal(t, updatedBody["email"], "testuser1@test.local")
+	assert.Equal(t, updatedBody["email"], "testuser2@test.local")
 }

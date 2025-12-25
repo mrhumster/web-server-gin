@@ -4,51 +4,105 @@ import (
 	"context"
 	"testing"
 
+	"github.com/google/uuid"
 	"github.com/mrhumster/web-server-gin/internal/domain/models"
-	"github.com/mrhumster/web-server-gin/internal/repository"
-	"github.com/mrhumster/web-server-gin/tests/testutils"
+	repomock "github.com/mrhumster/web-server-gin/internal/repository/mock"
+	authmock "github.com/mrhumster/web-server-gin/pkg/auth/mock"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"go.uber.org/mock/gomock"
 )
 
 func TestUserService_Create(t *testing.T) {
-	db := testutils.GetTestDB()
-	if db == nil {
-		t.Fatal("Test DB is nil")
-	}
-	defer testutils.CleanTestDatabase()
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	repo := repomock.NewMockUserRepository(ctrl)
+	permissionClient := authmock.NewMockPermissionClient(ctrl)
 
-	repo := repository.NewGormUserRepository(db)
-	if repo == nil {
-		t.Fatal("UserRepository is nil")
+	expectedUser := models.User{
+		Email: "testuser123@domain.com",
 	}
-	enforcer := testutils.GetEnforcer(db)
-	permissionService := NewPermissionService(enforcer)
-	service := NewUserService(repo, permissionService)
-	if service == nil {
-		t.Fatal("UserService is nil")
-	}
+	userID := uuid.New()
+	expectedUser.ID = userID
+	expectedUser.SetPassword("******")
 
+	repo.EXPECT().
+		CreateUser(
+			gomock.Any(),
+			gomock.AssignableToTypeOf(models.User{})).
+		Return(&userID, nil).
+		Times(1)
+
+	permissionClient.EXPECT().
+		AddPolicy(
+			gomock.Any(),
+			gomock.Any(),
+			gomock.Any(),
+			gomock.Any()).
+		Return(true, nil).
+		AnyTimes()
+
+	service := NewUserService(repo, permissionClient)
+
+	ctx := context.Background()
+	id, err := service.CreateUser(ctx, expectedUser)
+
+	assert.NoError(t, err)
+	require.Equal(t, userID, *id)
 }
 
 func TestUserService_Validate(t *testing.T) {
-	db := testutils.GetTestDB()
-	defer testutils.CleanTestDatabase()
-	repo := repository.NewGormUserRepository(db)
-	enforcer := testutils.GetEnforcer(db)
-	permissionService := NewPermissionService(enforcer)
-	service := NewUserService(repo, permissionService)
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	repo := repomock.NewMockUserRepository(ctrl)
+	permissionClient := authmock.NewMockPermissionClient(ctrl)
+
+	service := NewUserService(repo, permissionClient)
+
+	expectedUser := models.User{
+		Email: "testuser123@domain.com",
+	}
+	userID := uuid.New()
+	expectedUser.ID = userID
+	expectedUser.SetPassword("******")
+
+	repo.EXPECT().
+		CreateUser(
+			gomock.Any(),
+			gomock.AssignableToTypeOf(models.User{})).
+		Return(&userID, nil).
+		Times(1)
+
+	repo.EXPECT().
+		ReadUserByID(
+			gomock.Any(),
+			userID).
+		Return(&expectedUser, nil)
+
+	repo.EXPECT().
+		ReadUserByEmail(
+			gomock.Any(),
+			expectedUser.Email,
+		).
+		Return(&expectedUser, nil)
+
+	permissionClient.EXPECT().
+		AddPolicy(
+			gomock.Any(),
+			gomock.Any(),
+			gomock.Any(),
+			gomock.Any()).
+		Return(true, nil).
+		AnyTimes()
+
 	ctx := context.Background()
 	t.Run("Password validate success", func(t *testing.T) {
 
-		user := models.User{
-			PasswordHash: "password",
-			Email:        "email@test.local",
-		}
-		id, err := service.CreateUser(ctx, user)
+		id, err := service.CreateUser(ctx, expectedUser)
 		assert.NoError(t, err)
 		_, err = service.ReadUser(ctx, *id)
 		assert.NoError(t, err)
-		_, err = service.GetUserByEmail(ctx, "email@test.local")
+		_, err = service.GetUserByEmail(ctx, expectedUser.Email)
 		assert.NoError(t, err)
 	})
 }

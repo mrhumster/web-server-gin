@@ -1,4 +1,4 @@
-//go:generate mockgen -source=peromission_client.go -destination=./mock/permission_client_mock.go -package=mocks
+//go:generate mockgen -source=permission_client.go -destination=./mock/permission_client_mock.go -package=authmock
 
 package auth
 

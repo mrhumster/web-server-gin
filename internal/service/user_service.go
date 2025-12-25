@@ -21,13 +21,13 @@ var (
 )
 
 type UserService struct {
-	repo              repository.UserRepository
-	permissionService *PermissionService
-	mu                sync.RWMutex
+	repo             repository.UserRepository
+	permissionClient PermissionClient
+	mu               sync.RWMutex
 }
 
-func NewUserService(repo repository.UserRepository, perm *PermissionService) *UserService {
-	return &UserService{repo: repo, permissionService: perm}
+func NewUserService(repo repository.UserRepository, perm PermissionClient) *UserService {
+	return &UserService{repo: repo, permissionClient: perm}
 }
 
 func (s *UserService) CreateUser(ctx context.Context, user models.User) (*uuid.UUID, error) {
@@ -53,12 +53,12 @@ func (s *UserService) CreateUser(ctx context.Context, user models.User) (*uuid.U
 	policy := id.String()
 	resource := fmt.Sprintf("users/%s", id.String())
 	log.Printf("⚠️ UserService. CreateUser Permission debug: %s %s", policy, resource)
-	s.permissionService.AddPolicy(policy, resource, "read")
-	s.permissionService.AddPolicy(policy, resource, "write")
-	s.permissionService.AddPolicy(policy, resource, "delete")
-	s.permissionService.AddPolicy(policy, "users", "read")
-	s.permissionService.AddPolicy(policy, "stream", "read")
-	s.permissionService.AddPolicy(policy, "stream", "write")
+	s.permissionClient.AddPolicy(ctx, policy, resource, "read")
+	s.permissionClient.AddPolicy(ctx, policy, resource, "write")
+	s.permissionClient.AddPolicy(ctx, policy, resource, "delete")
+	s.permissionClient.AddPolicy(ctx, policy, "users", "read")
+	s.permissionClient.AddPolicy(ctx, policy, "stream", "read")
+	s.permissionClient.AddPolicy(ctx, policy, "stream", "write")
 	s.mu.Unlock()
 	return id, nil
 }
@@ -76,11 +76,11 @@ func (s *UserService) DeleteUser(ctx context.Context, id uuid.UUID) error {
 	if err == nil {
 		policy := fmt.Sprintf("%s", id)
 		resource := fmt.Sprintf("users/%s", id.String())
-		s.permissionService.RemovePolicy(policy, resource, "read")
-		s.permissionService.RemovePolicy(policy, resource, "write")
-		s.permissionService.RemovePolicy(policy, resource, "delete")
-		s.permissionService.RemovePolicy(policy, "users", "read")
-		s.permissionService.RemovePolicy(policy, "stream", "read")
+		s.permissionClient.RemovePolicy(ctx, policy, resource, "read")
+		s.permissionClient.RemovePolicy(ctx, policy, resource, "write")
+		s.permissionClient.RemovePolicy(ctx, policy, resource, "delete")
+		s.permissionClient.RemovePolicy(ctx, policy, "users", "read")
+		s.permissionClient.RemovePolicy(ctx, policy, "stream", "read")
 	}
 	return err
 
