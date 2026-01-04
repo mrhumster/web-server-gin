@@ -41,7 +41,7 @@ func (p *PermissionService) AddPolicyIfNotExists(sub, obj, act string) (bool, er
 
 func (p *PermissionService) CheckPermission(subj, obj, act string) (bool, error) {
 	p.mu.RLock()
-	defer p.mu.Unlock()
+	defer p.mu.RUnlock()
 	return p.enforcer.Enforce(subj, obj, act)
 }
 
