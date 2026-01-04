@@ -2,6 +2,8 @@ package service
 
 import (
 	"context"
+	"sync"
+
 	"github.com/casbin/casbin/v2"
 )
 
@@ -15,6 +17,7 @@ type PermissionClient interface {
 
 type PermissionService struct {
 	enforcer *casbin.Enforcer
+	mu       sync.RWMutex
 }
 
 func NewPermissionService(e *casbin.Enforcer) *PermissionService {
@@ -37,10 +40,14 @@ func (p *PermissionService) AddPolicyIfNotExists(sub, obj, act string) (bool, er
 }
 
 func (p *PermissionService) CheckPermission(subj, obj, act string) (bool, error) {
+	p.mu.RLock()
+	defer p.mu.Unlock()
 	return p.enforcer.Enforce(subj, obj, act)
 }
 
 func (p *PermissionService) AddPolicy(sub, obj, act string) (bool, error) {
+	p.mu.Lock()
+	defer p.mu.Unlock()
 	return p.enforcer.AddPolicy(sub, obj, act)
 }
 

@@ -4,6 +4,9 @@ metadata:
   name: ingress-certificate
   namespace: go-app
 spec:
+  secretTemplate:
+    annotations:
+      cert-manager.io/certificate-key: "tls.crt"
   secretName: ingress-certificate
   issuerRef:
     name: ca-issuer
