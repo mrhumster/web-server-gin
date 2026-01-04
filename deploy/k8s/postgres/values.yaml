@@ -1,0 +1,49 @@
+fullnameOverride: postgresql
+
+image:
+  repository: postgres
+  tag: 17-alpine
+  pullPolicy: IfNotPresent
+
+existingSecret: postgresql-secret
+existingSecretKey: password
+
+postgresqlDatabase: database1
+postgresqlUsername: postgres
+
+persistence:
+  enabled: true
+  size: 8Gi
+  storageClass: ""
+  accessModes:
+    - ReadWriteOnce
+
+service:
+  type: ClusterIP
+  port: 5432
+
+resources:
+  requests:
+    memory: "256Mi"
+    cpu: "250m"
+  limits:
+    memory: "512Mi"
+    cpu: "500m"
+
+livenessProbe:
+  enabled: true
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+readinessProbe:
+  enabled: true
+  initialDelaySeconds: 5
+  periodSeconds: 5
+  timeoutSeconds: 3
+  failureThreshold: 3
+
+postgresqlDataDir: /var/lib/postgresql/data/pgdata
+shmVolume:
+  enabled: true

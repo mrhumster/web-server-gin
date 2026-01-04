@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: web-server-gin
-          image: xomrkob/web-server-gin:0.1.1-4408b7c5c8c9f2faaae314d9e4402816d858c5ab
+          image: xomrkob/web-server-gin:0.1.1-beaaa6ba0d6627321dd0b2639ad614c775fad8fa
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
@@ -28,7 +28,7 @@ spec:
             - name: DOMAIN
               value: go-app.example.com
             - name: DB_HOST
-              value: potgresql-postgresql.go-app.svc.cluster.local
+              value: postgresql.go-app.svc.cluster.local
             - name: DB_PORT
               value: "5432"
             - name: DB_NAME

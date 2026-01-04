@@ -7,7 +7,7 @@ LOCAL_DB_PORT=5432
 
 echo "🔌 Setting up port forwarding to Kubernetes PostgreSQL..."
 
-kubectl port-forward -n $NAMESPACE svc/potgresql-postgresql $LOCAL_DB_PORT:5432 >/dev/null 2>&1 &
+kubectl port-forward -n $NAMESPACE svc/postgresql $LOCAL_DB_PORT:5432 >/dev/null 2>&1 &
 PF_PID=$!
 
 sleep 3
