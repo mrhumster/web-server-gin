@@ -95,16 +95,16 @@ func SetupRoutes(db *gorm.DB, mode string, permissionClient auth.PermissionClien
 
 	auth := r.Group("/auth/", middleware.AuthMiddleware(tokenService))
 	{
-		auth.POST("/auth/logout", authHandler.Logout)
-		auth.POST("/auth/logout-all", authHandler.LogoutAll)
-		auth.GET("/auth/users", middleware.Authorize("users", "read", permissionClient), userHandler.ReadUsers)
-		auth.GET("/auth/users/:id", middleware.Authorize("users", "read", permissionClient), userHandler.ReadUser)
-		auth.PATCH("/auth/users/:id", middleware.Authorize("users", "write", permissionClient), userHandler.Update)
-		auth.DELETE("/auth/users/:id", middleware.Authorize("users", "delete", permissionClient), userHandler.Delete)
+		auth.POST("/logout", authHandler.Logout)
+		auth.POST("/logout-all", authHandler.LogoutAll)
+		auth.GET("/users", middleware.Authorize("users", "read", permissionClient), userHandler.ReadUsers)
+		auth.GET("/users/:id", middleware.Authorize("users", "read", permissionClient), userHandler.ReadUser)
+		auth.PATCH("/users/:id", middleware.Authorize("users", "write", permissionClient), userHandler.Update)
+		auth.DELETE("/users/:id", middleware.Authorize("users", "delete", permissionClient), userHandler.Delete)
 	}
 
-	r.GET("/public-key", commonHandler.GetPublicKey)
-	r.GET("/health", func(c *gin.Context) {
+	r.GET("/auth/public-key", commonHandler.GetPublicKey)
+	r.GET("/auth/health", func(c *gin.Context) {
 		if _, err := db.DB(); err != nil {
 			log.Println("⚠️ PG ERROR: ", err.Error())
 			c.JSON(http.StatusServiceUnavailable, gin.H{"status": "down", "error": err.Error()})
