@@ -28,7 +28,7 @@ spec:
             - name: DOMAIN
               value: go-app.example.com
             - name: DB_HOST
-              value: postgresql.go-app.svc.cluster.local
+              value: potgresql-postgresql
             - name: DB_PORT
               value: "5432"
             - name: DB_NAME

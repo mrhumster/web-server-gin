@@ -88,12 +88,12 @@ func SetupRoutes(db *gorm.DB, mode string, permissionClient auth.PermissionClien
 	}
 
 	// ROUTE
-	r.POST("/api/login", authHandler.Login)
-	r.GET("/api/logout", authHandler.Logout)
-	r.POST("/api/users", userHandler.CreateUser)
-	r.POST("/api/refresh", authHandler.Refresh)
+	r.POST("/login", authHandler.Login)
+	r.GET("/logout", authHandler.Logout)
+	r.POST("/users", userHandler.CreateUser)
+	r.POST("/refresh", authHandler.Refresh)
 
-	auth := r.Group("/api", middleware.AuthMiddleware(tokenService))
+	auth := r.Group("/", middleware.AuthMiddleware(tokenService))
 	{
 		auth.POST("/logout", authHandler.Logout)
 		auth.POST("/logout-all", authHandler.LogoutAll)
@@ -103,7 +103,7 @@ func SetupRoutes(db *gorm.DB, mode string, permissionClient auth.PermissionClien
 		auth.DELETE("/users/:id", middleware.Authorize("users", "delete", permissionClient), userHandler.Delete)
 	}
 
-	r.GET("/api/auth/public-key", commonHandler.GetPublicKey)
+	r.GET("/public-key", commonHandler.GetPublicKey)
 	r.GET("/health", func(c *gin.Context) {
 		if _, err := db.DB(); err != nil {
 			log.Println("⚠️ PG ERROR: ", err.Error())
