@@ -18,8 +18,8 @@ spec:
     - host: api.example.com
       http:
         paths:
-          - path: /auth/.*
-            pathType: Prefix
+          - path: /auth(/|$)(.*)
+            pathType: ImplementationSpecific
             backend:
               service:
                 name: web-server-gin-service
