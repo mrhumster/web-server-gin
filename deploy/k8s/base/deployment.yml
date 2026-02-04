@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: web-server-gin
-          image: xomrkob/web-server-gin:0.1.1-beaaa6ba0d6627321dd0b2639ad614c775fad8fa
+          image: xomrkob/web-server-gin:0.1.1-4048806894a947949890cab75cf5c0320efef8d6
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
@@ -26,7 +26,7 @@ spec:
             - name: SERVER_ADDR
               value: ":8080"
             - name: DOMAIN
-              value: go-app.example.com
+              value: api.example.com
             - name: DB_HOST
               value: potgresql-postgresql
             - name: DB_PORT
@@ -85,13 +85,13 @@ spec:
               cpu: "500m"
           livenessProbe:
             httpGet:
-              path: /health
+              path: /auth/health
               port: 8080
             initialDelaySeconds: 5
             periodSeconds: 10
           readinessProbe:
             httpGet:
-              path: /health
+              path: /auth/health
               port: 8080
             initialDelaySeconds: 5
             periodSeconds: 10

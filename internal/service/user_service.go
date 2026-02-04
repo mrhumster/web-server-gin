@@ -68,6 +68,7 @@ func (s *UserService) ReadUser(ctx context.Context, id uuid.UUID) (*models.User,
 }
 
 func (s *UserService) UpdateUser(ctx context.Context, id uuid.UUID, user request.UpdateUserRequest) (*uuid.UUID, error) {
+	// TODO: Validation. Email shouldn't empty
 	return s.repo.UpdateUser(ctx, id, user)
 }
 
