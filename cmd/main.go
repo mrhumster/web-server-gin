@@ -63,6 +63,7 @@ func main() {
 
 	go func() {
 		log.Printf("🚀 Server starting on %s\n", cfg.ServerAddr)
+		log.Printf("ENV DOMAIN: %s", cfg.Domain)
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Fatal("🔴 Server error: ", err)
 			httpErr <- err
@@ -96,7 +97,6 @@ func main() {
 			log.Fatalf("🔴 Failed to serve: %v", err)
 			grpcErr <- err
 		}
-
 	}()
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)

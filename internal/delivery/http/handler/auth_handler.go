@@ -59,9 +59,9 @@ func (a *AuthHandler) Login(c *gin.Context) {
 		"refresh_token",
 		tokenPair.RefreshToken,
 		int(a.TokenService.GetRefreshExpiry().Seconds()),
-		"/api/refresh",
+		"/auth/refresh",
 		a.Domain,
-		false,
+		true,
 		true,
 	)
 
@@ -118,7 +118,6 @@ func (a *AuthHandler) Refresh(c *gin.Context) {
 		ExpiresIn:   tokenPair.ExpiresIn,
 		TokenType:   tokenPair.TokenType,
 	})
-
 }
 
 func (a *AuthHandler) Logout(c *gin.Context) {
