@@ -55,11 +55,13 @@ func (a *AuthHandler) Login(c *gin.Context) {
 		)
 	}
 
+	c.SetSameSite(http.SameSiteNoneMode)
+
 	c.SetCookie(
 		"refresh_token",
 		tokenPair.RefreshToken,
 		int(a.TokenService.GetRefreshExpiry().Seconds()),
-		"/api/refresh",
+		"/auth/refresh",
 		a.Domain,
 		true,
 		true,
@@ -100,7 +102,7 @@ func (a *AuthHandler) Refresh(c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusUnauthorized, response.ErrorResponse("failed to generate token"))
 		return
 	}
-
+	c.SetSameSite(http.SameSiteNoneMode)
 	c.SetCookie(
 		"refresh_token",
 		tokenPair.RefreshToken,
