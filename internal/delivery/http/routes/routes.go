@@ -33,7 +33,7 @@ func SetupRoutes(db *gorm.DB, mode string, permissionClient auth.PermissionClien
 
 	// CORS
 	r.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:5173", "https://*.example.com"},
+		AllowOrigins:     []string{"http://localhost:5173", "https://example.com", "https://api.example.com"},
 		AllowMethods:     []string{"GET", "PATH", "POST", "OPTIONS", "PUT", "DELETE"},
 		AllowHeaders:     []string{"Content-Type", "Authorization"},
 		AllowCredentials: true,
