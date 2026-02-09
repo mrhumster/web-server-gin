@@ -2,6 +2,7 @@ package handler
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"time"
 
@@ -88,6 +89,7 @@ func (a *AuthHandler) Refresh(c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusUnauthorized, response.ErrorResponse("invalid refresh token"))
 		return
 	}
+	log.Printf("🐧 Token claim %v", claims)
 	userID, err := uuid.Parse(claims.UserID)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusUnauthorized, response.ErrorResponse("invalid user id in claim"))

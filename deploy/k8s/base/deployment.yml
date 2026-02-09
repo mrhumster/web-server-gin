@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: web-server-gin
-          image: xomrkob/web-server-gin:0.1.1-f8bdc31b65a16d361393404209b249304ace07ed
+          image: xomrkob/web-server-gin:0.1.1-7f1b486cebc50a7982921527fd2a897eaa509a4c
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
@@ -26,7 +26,7 @@ spec:
             - name: SERVER_ADDR
               value: ":8080"
             - name: DOMAIN
-              value: example.com
+              value: .example.com
             - name: DB_HOST
               value: potgresql-postgresql
             - name: DB_PORT
