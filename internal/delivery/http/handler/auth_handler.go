@@ -89,7 +89,6 @@ func (a *AuthHandler) Refresh(c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusUnauthorized, response.ErrorResponse("invalid refresh token"))
 		return
 	}
-	log.Printf("🐧 Token claim %v", claims)
 	userID, err := uuid.Parse(claims.UserID)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusUnauthorized, response.ErrorResponse("invalid user id in claim"))
@@ -126,7 +125,7 @@ func (a *AuthHandler) Refresh(c *gin.Context) {
 }
 
 func (a *AuthHandler) Logout(c *gin.Context) {
-	c.SetCookie("refresh_token", "", -1, "/auth/refresh", "", true, true)
+	c.SetCookie("refresh_token", "", -1, "/auth/refresh", a.Domain, true, true)
 	c.JSON(http.StatusOK, response.SuccessResponse("Logged out successfully"))
 }
 
@@ -146,7 +145,7 @@ func (a *AuthHandler) LogoutAll(c *gin.Context) {
 		return
 	}
 
-	c.SetCookie("refresh_token", "", -1, "/auth/refresh", "", true, true)
+	c.SetCookie("refresh_token", "", -1, "/auth/refresh", a.Domain, true, true)
 
 	c.JSON(http.StatusOK, response.ErrorResponse("logged out from all devices"))
 }
