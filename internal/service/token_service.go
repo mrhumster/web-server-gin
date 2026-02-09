@@ -69,7 +69,7 @@ func (s *TokenService) GenerateToken(user *models.User) (*models.TokenPair, erro
 	}
 	refreshExpiresAt := time.Now().Add(s.refreshExpiry)
 	refreshClaims := &models.RefreshClaims{
-		UserID:       fmt.Sprintf("%d", user.ID),
+		UserID:       fmt.Sprintf("%s", user.ID),
 		TokenVersion: user.TokenVersion,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(refreshExpiresAt),
