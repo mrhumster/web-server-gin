@@ -169,3 +169,27 @@ func (h *UserHandler) ReadUsers(c *gin.Context) {
 		Limit: limit,
 	})
 }
+
+func (h *UserHandler) GetAuthUser(c *gin.Context) {
+	userID, exist := c.Get("userID")
+	if !exist {
+		c.AbortWithStatusJSON(http.StatusUnauthorized, response.ErrorResponse("user not auth"))
+		return
+	}
+
+	userUUID, err := uuid.Parse(userID.(string))
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, response.ErrorResponse("error during parse user id"))
+		return
+	}
+
+	user, err := h.service.ReadUser(c, userUUID)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	var resp response.UserResponse
+	resp.FillInTheModel(user)
+	c.JSON(http.StatusOK, resp)
+}
