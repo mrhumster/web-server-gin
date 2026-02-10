@@ -2,7 +2,6 @@ package handler
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"time"
 
@@ -62,7 +61,7 @@ func (a *AuthHandler) Login(c *gin.Context) {
 		"refresh_token",
 		tokenPair.RefreshToken,
 		int(a.TokenService.GetRefreshExpiry().Seconds()),
-		"/auth/refresh",
+		"/",
 		a.Domain,
 		true,
 		true,
@@ -108,7 +107,7 @@ func (a *AuthHandler) Refresh(c *gin.Context) {
 		"refresh_token",
 		tokenPair.RefreshToken,
 		int(a.TokenService.GetRefreshExpiry().Seconds()),
-		"/auth/refresh",
+		"/",
 		a.Domain,
 		true,
 		true,
@@ -125,7 +124,7 @@ func (a *AuthHandler) Refresh(c *gin.Context) {
 }
 
 func (a *AuthHandler) Logout(c *gin.Context) {
-	c.SetCookie("refresh_token", "", -1, "/auth/refresh", a.Domain, true, true)
+	c.SetCookie("refresh_token", "", -1, "/", a.Domain, true, true)
 	c.JSON(http.StatusOK, response.SuccessResponse("Logged out successfully"))
 }
 
@@ -145,7 +144,7 @@ func (a *AuthHandler) LogoutAll(c *gin.Context) {
 		return
 	}
 
-	c.SetCookie("refresh_token", "", -1, "/auth/refresh", a.Domain, true, true)
+	c.SetCookie("refresh_token", "", -1, "/", a.Domain, true, true)
 
 	c.JSON(http.StatusOK, response.ErrorResponse("logged out from all devices"))
 }
