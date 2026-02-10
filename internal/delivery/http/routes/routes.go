@@ -103,7 +103,7 @@ func SetupRoutes(db *gorm.DB, mode string, permissionClient auth.PermissionClien
 
 	auth := r.Group("/auth/", middleware.AuthMiddleware(tokenService))
 	{
-		auth.GET("/", userHandler.GetAuthUser)
+		auth.GET("/who", userHandler.GetAuthUser)
 		auth.POST("/logout", authHandler.Logout)
 		auth.POST("/logout-all", authHandler.LogoutAll)
 		auth.GET("/users", middleware.Authorize("users", "read", permissionClient), userHandler.ReadUsers)
