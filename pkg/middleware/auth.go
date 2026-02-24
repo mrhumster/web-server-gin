@@ -12,6 +12,10 @@ import (
 
 func Authorize(client auth.PermissionClient, obj, act string) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		if c.Request.Method == http.MethodOptions {
+			c.Next()
+			return
+		}
 		userID, exists := c.Get("userID")
 		if !exists {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, dto.ErrorResponse("User hasn't logged in yet"))

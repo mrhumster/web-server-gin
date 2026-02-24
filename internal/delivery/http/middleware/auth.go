@@ -13,7 +13,10 @@ import (
 
 func AuthMiddleware(tokenService *service.TokenService) gin.HandlerFunc {
 	return func(c *gin.Context) {
-
+		if c.Request.Method == http.MethodOptions {
+			c.Next()
+			return
+		}
 		token := extractToken(c.Request)
 		claims, err := tokenService.ValidateAccessToken(token)
 		if err != nil {
