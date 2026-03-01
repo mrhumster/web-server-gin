@@ -3,7 +3,7 @@ ARG VERSION=0.1.0
 ARG BUILD_DATE=12.11.2025
 
 WORKDIR /app
-COPY go.mod ./ 
+COPY go.mod go.sum ./
 
 RUN if [ -f go.sum ]; then cp go.sum .; fi
 RUN go mod download

@@ -12,6 +12,7 @@ require (
 	github.com/jackc/pgx/v5 v5.7.6
 	github.com/sony/gobreaker v1.0.0
 	github.com/stretchr/testify v1.11.1
+	go.uber.org/mock v0.6.0
 	golang.org/x/crypto v0.42.0
 	google.golang.org/grpc v1.76.0
 	google.golang.org/protobuf v1.36.9
@@ -62,7 +63,6 @@ require (
 	github.com/stretchr/objx v0.5.2 // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/ugorji/go/codec v1.3.0 // indirect
-	go.uber.org/mock v0.6.0 // indirect
 	golang.org/x/arch v0.21.0 // indirect
 	golang.org/x/mod v0.28.0 // indirect
 	golang.org/x/net v0.44.0 // indirect
