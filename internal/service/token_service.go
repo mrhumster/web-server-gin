@@ -11,6 +11,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/mrhumster/web-server-gin/config"
 	"github.com/mrhumster/web-server-gin/internal/domain/models"
+	"github.com/mrhumster/web-server-gin/pkg/dto"
 )
 
 type TokenService struct {
@@ -91,7 +92,7 @@ func (s *TokenService) GenerateToken(user *models.User) (*models.TokenPair, erro
 	}, nil
 }
 
-func (s *TokenService) ValidateAccessToken(tokenString string) (*models.AccessClaims, error) {
+func (s *TokenService) ValidateAccessToken(tokenString string) (*dto.AccessClaims, error) {
 	token, err := jwt.ParseWithClaims(tokenString, &models.AccessClaims{}, func(token *jwt.Token) (any, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodRSA); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
@@ -101,13 +102,13 @@ func (s *TokenService) ValidateAccessToken(tokenString string) (*models.AccessCl
 	if err != nil {
 		return nil, err
 	}
-	if claims, ok := token.Claims.(*models.AccessClaims); ok && token.Valid {
+	if claims, ok := token.Claims.(*dto.AccessClaims); ok && token.Valid {
 		return claims, nil
 	}
 	return nil, errors.New("invalid token")
 }
 
-func (s *TokenService) ValidateRefreshToken(tokenString string) (*models.RefreshClaims, error) {
+func (s *TokenService) ValidateRefreshToken(tokenString string) (*dto.RefreshClaims, error) {
 	token, err := jwt.ParseWithClaims(tokenString, &models.RefreshClaims{}, func(token *jwt.Token) (any, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodRSA); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
@@ -117,7 +118,7 @@ func (s *TokenService) ValidateRefreshToken(tokenString string) (*models.Refresh
 	if err != nil {
 		return nil, err
 	}
-	if claims, ok := token.Claims.(*models.RefreshClaims); ok && token.Valid {
+	if claims, ok := token.Claims.(*dto.RefreshClaims); ok && token.Valid {
 		return claims, nil
 	}
 	return nil, errors.New("invalid token")

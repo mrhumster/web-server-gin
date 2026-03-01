@@ -10,15 +10,14 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/mrhumster/web-server-gin/config"
 	"github.com/mrhumster/web-server-gin/internal/delivery/http/handler"
-	"github.com/mrhumster/web-server-gin/internal/delivery/http/middleware"
 	"github.com/mrhumster/web-server-gin/internal/repository"
 	"github.com/mrhumster/web-server-gin/internal/service"
 	"github.com/mrhumster/web-server-gin/pkg/auth"
+	"github.com/mrhumster/web-server-gin/pkg/middleware"
 	"gorm.io/gorm"
 )
 
 func SetupRoutes(db *gorm.DB, mode string, permissionClient auth.PermissionClient) *gin.Engine {
-
 	// MODE
 	if mode == "test" {
 		gin.SetMode(gin.TestMode)
@@ -97,10 +96,10 @@ func SetupRoutes(db *gorm.DB, mode string, permissionClient auth.PermissionClien
 	{
 		auth.POST("/logout", authHandler.Logout)
 		auth.POST("/logout-all", authHandler.LogoutAll)
-		auth.GET("/users", middleware.Authorize("users", "read", permissionClient), userHandler.ReadUsers)
-		auth.GET("/users/:id", middleware.Authorize("users", "read", permissionClient), userHandler.ReadUser)
-		auth.PATCH("/users/:id", middleware.Authorize("users", "write", permissionClient), userHandler.Update)
-		auth.DELETE("/users/:id", middleware.Authorize("users", "delete", permissionClient), userHandler.Delete)
+		auth.GET("/users", middleware.Authorize(permissionClient, "users", "read"), userHandler.ReadUsers)
+		auth.GET("/users/:id", middleware.Authorize(permissionClient, "users", "read"), userHandler.ReadUser)
+		auth.PATCH("/users/:id", middleware.Authorize(permissionClient, "users", "write"), userHandler.Update)
+		auth.DELETE("/users/:id", middleware.Authorize(permissionClient, "users", "delete"), userHandler.Delete)
 	}
 
 	r.GET("/auth/public-key", commonHandler.GetPublicKey)
