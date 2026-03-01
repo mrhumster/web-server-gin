@@ -126,17 +126,8 @@ func (a *AuthHandler) Logout(c *gin.Context) {
 }
 
 func (a *AuthHandler) LogoutAll(c *gin.Context) {
-	userID, exists := c.Get("userID")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "user not authenticated"})
-		return
-	}
-	id, err := uuid.Parse(userID.(string))
-	if err != nil {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, response.ErrorResponse("imvalid user id in claim"))
-	}
-	err = a.UserService.UpdateTokenVersion(c, &id, generateNewTokenVersion())
-	if err != nil {
+	userUUID := c.MustGet("user").(uuid.UUID)
+	if err := a.UserService.UpdateTokenVersion(c, &userUUID, generateNewTokenVersion()); err != nil {
 		c.JSON(http.StatusInternalServerError, response.ErrorResponse("failed to logout"))
 		return
 	}

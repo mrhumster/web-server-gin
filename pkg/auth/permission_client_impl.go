@@ -30,9 +30,9 @@ func (c *PermissionGRPCClient) Close() error {
 	return c.conn.Close()
 }
 
-func (c *PermissionGRPCClient) CheckPermission(ctx context.Context, userId, resource, action string) (bool, error) {
+func (c *PermissionGRPCClient) CheckPermission(ctx context.Context, userID, resource, action string) (bool, error) {
 	resp, err := c.service.CheckPermission(ctx, &permission.CheckPermissionRequest{
-		UserId:   userId,
+		UserId:   userID,
 		Resource: resource,
 		Action:   action,
 	})
@@ -42,9 +42,9 @@ func (c *PermissionGRPCClient) CheckPermission(ctx context.Context, userId, reso
 	return resp.Allowed, nil
 }
 
-func (c *PermissionGRPCClient) AddPolicy(ctx context.Context, userId, resource, action string) (bool, error) {
+func (c *PermissionGRPCClient) AddPolicy(ctx context.Context, userID, resource, action string) (bool, error) {
 	resp, err := c.service.AddPolicy(ctx, &permission.AddPolicyRequest{
-		Policy:     userId,
+		Policy:     userID,
 		Resorce:    resource,
 		Permission: action,
 	})
@@ -54,9 +54,9 @@ func (c *PermissionGRPCClient) AddPolicy(ctx context.Context, userId, resource, 
 	return resp.Added, nil
 }
 
-func (c *PermissionGRPCClient) RemovePolicy(ctx context.Context, userId, resource, action string) (bool, error) {
+func (c *PermissionGRPCClient) RemovePolicy(ctx context.Context, userID, resource, action string) (bool, error) {
 	resp, err := c.service.RemovePolicy(ctx, &permission.RemovePolicyRequest{
-		Policy:     userId,
+		Policy:     userID,
 		Resource:   resource,
 		Permission: action,
 	})
@@ -66,9 +66,9 @@ func (c *PermissionGRPCClient) RemovePolicy(ctx context.Context, userId, resourc
 	return resp.Removed, nil
 }
 
-func (c *PermissionGRPCClient) AddPolicyIfNotExists(ctx context.Context, userId, resource, action string) (bool, error) {
+func (c *PermissionGRPCClient) AddPolicyIfNotExists(ctx context.Context, userID, resource, action string) (bool, error) {
 	resp, err := c.service.AddPolicyIfNotExists(ctx, &permission.AddPolicyIfNotExistsRequest{
-		Policy:     userId,
+		Policy:     userID,
 		Resource:   resource,
 		Permission: action,
 	})

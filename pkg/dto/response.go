@@ -1,7 +1,7 @@
 package dto
 
-func ErrorResponse(message string) map[string]interface{} {
-	return map[string]interface{}{
+func ErrorResponse(message string) map[string]any {
+	return map[string]any{
 		"error": message,
 	}
 }

@@ -75,7 +75,7 @@ func (s *UserService) UpdateUser(ctx context.Context, id uuid.UUID, user request
 func (s *UserService) DeleteUser(ctx context.Context, id uuid.UUID) error {
 	err := s.repo.DeleteUserByID(ctx, id)
 	if err == nil {
-		policy := fmt.Sprintf("%s", id)
+		policy := id.String()
 		resource := fmt.Sprintf("users/%s", id.String())
 		s.permissionClient.RemovePolicy(ctx, policy, resource, "read")
 		s.permissionClient.RemovePolicy(ctx, policy, resource, "write")
@@ -84,7 +84,6 @@ func (s *UserService) DeleteUser(ctx context.Context, id uuid.UUID) error {
 		s.permissionClient.RemovePolicy(ctx, policy, "stream", "read")
 	}
 	return err
-
 }
 
 func (s *UserService) ReadUserList(ctx context.Context, limit, page int64) ([]models.User, int64, error) {

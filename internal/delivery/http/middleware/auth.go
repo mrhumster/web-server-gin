@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"github.com/mrhumster/web-server-gin/internal/delivery/http/dto/response"
 	"github.com/mrhumster/web-server-gin/internal/service"
 	"github.com/mrhumster/web-server-gin/pkg/auth"
@@ -13,7 +14,6 @@ import (
 
 func AuthMiddleware(tokenService *service.TokenService) gin.HandlerFunc {
 	return func(c *gin.Context) {
-
 		token := extractToken(c.Request)
 		claims, err := tokenService.ValidateAccessToken(token)
 		if err != nil {
@@ -21,8 +21,11 @@ func AuthMiddleware(tokenService *service.TokenService) gin.HandlerFunc {
 			c.Abort()
 			return
 		}
-
-		c.Set("userID", claims.UserID)
+		userUUID, err := uuid.Parse(claims.UserID)
+		if err != nil {
+			c.JSON(http.StatusUnauthorized, response.ErrorResponse("error parse user id in auth middleware"))
+		}
+		c.Set("user", userUUID)
 		c.Set("claims", claims)
 		c.Next()
 	}

@@ -2,32 +2,27 @@ package middleware
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"github.com/mrhumster/web-server-gin/pkg/auth"
 	"github.com/mrhumster/web-server-gin/pkg/dto"
 )
 
 func Authorize(client auth.PermissionClient, obj, act string) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		userID, exists := c.Get("userID")
-		if !exists {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, dto.ErrorResponse("User hasn't logged in yet"))
-			return
-		}
+		userUUID := c.MustGet("userID").(uuid.UUID)
 		resourceID := c.Param("id")
 
 		fullResource := obj
 		if resourceID != "" {
 			fullResource = fmt.Sprintf("%s/%s", obj, resourceID)
 		}
-		fmt.Printf("🐞 Authorize middleware: sub: %s; obj: %s; act: %s\n", userID, fullResource, act)
 
-		ok, err := client.CheckPermission(c.Request.Context(), userID.(string), fullResource, act)
+		ok, err := client.CheckPermission(c.Request.Context(), userUUID.String(), fullResource, act)
 		if err != nil {
-			log.Fatal("⚠️ Authorize middleware error: ", err)
+			c.AbortWithStatusJSON(http.StatusForbidden, dto.ErrorResponse("⚠️ Authorize middleware error"))
 			return
 		}
 		if !ok {
