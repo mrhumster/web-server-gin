@@ -12,7 +12,7 @@ import (
 
 func Authorize(client auth.PermissionClient, obj, act string) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		userUUID := c.MustGet("userID").(uuid.UUID)
+		userUUID := c.MustGet("user").(uuid.UUID)
 		resourceID := c.Param("id")
 
 		fullResource := obj
