@@ -55,7 +55,7 @@ func NewTokenService(cfg *config.JWT) (*TokenService, error) {
 func (s *TokenService) GenerateToken(user *models.User) (*models.TokenPair, error) {
 	accessExpiresAt := time.Now().Add(s.accessExpiry)
 	accessClaims := &models.AccessClaims{
-		UserID: fmt.Sprintf("%s", user.ID),
+		UserID: user.ID.String(),
 		Role:   user.Role,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(accessExpiresAt),
@@ -93,7 +93,7 @@ func (s *TokenService) GenerateToken(user *models.User) (*models.TokenPair, erro
 }
 
 func (s *TokenService) ValidateAccessToken(tokenString string) (*dto.AccessClaims, error) {
-	token, err := jwt.ParseWithClaims(tokenString, &models.AccessClaims{}, func(token *jwt.Token) (any, error) {
+	token, err := jwt.ParseWithClaims(tokenString, &dto.AccessClaims{}, func(token *jwt.Token) (any, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodRSA); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
@@ -109,7 +109,7 @@ func (s *TokenService) ValidateAccessToken(tokenString string) (*dto.AccessClaim
 }
 
 func (s *TokenService) ValidateRefreshToken(tokenString string) (*dto.RefreshClaims, error) {
-	token, err := jwt.ParseWithClaims(tokenString, &models.RefreshClaims{}, func(token *jwt.Token) (any, error) {
+	token, err := jwt.ParseWithClaims(tokenString, &dto.RefreshClaims{}, func(token *jwt.Token) (any, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodRSA); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
