@@ -42,7 +42,8 @@ func AuthMiddleware(tokenService TokenServiceIFace) gin.HandlerFunc {
 		token := extractToken(c.Request)
 		claims, err := tokenService.ValidateAccessToken(token)
 		if err != nil {
-			c.JSON(http.StatusUnauthorized, dto.ErrorResponse("invalid token claims"))
+			errMsg := fmt.Sprintf("invalid token claims: %s", err.Error())
+			c.JSON(http.StatusUnauthorized, dto.ErrorResponse(errMsg))
 			c.Abort()
 			return
 		}
