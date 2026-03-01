@@ -17,6 +17,9 @@ type TokenServiceIFace interface {
 
 func Authorize(client auth.PermissionClient, obj, act string) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		if c.Request.Method == http.MethodOptions {
+			c.Next()
+		}
 		userUUID := c.MustGet("user").(uuid.UUID)
 		resourceID := c.Param("id")
 
