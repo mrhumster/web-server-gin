@@ -8,10 +8,14 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/mrhumster/web-server-gin/internal/delivery/http/dto/response"
-	"github.com/mrhumster/web-server-gin/internal/service"
+	"github.com/mrhumster/web-server-gin/internal/domain/models"
 	"github.com/mrhumster/web-server-gin/pkg/auth"
 	"github.com/mrhumster/web-server-gin/pkg/dto"
 )
+
+type TokenServiceIFace interface {
+	ValidateAccessToken(tokenString string) (*models.AccessClaims, error)
+}
 
 func Authorize(client auth.PermissionClient, obj, act string) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -35,7 +39,7 @@ func Authorize(client auth.PermissionClient, obj, act string) gin.HandlerFunc {
 	}
 }
 
-func AuthMiddleware(tokenService *service.TokenService) gin.HandlerFunc {
+func AuthMiddleware(tokenService TokenServiceIFace) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		token := extractToken(c.Request)
 		claims, err := tokenService.ValidateAccessToken(token)
