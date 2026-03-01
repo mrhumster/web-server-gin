@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/mrhumster/web-server-gin/config"
 	"github.com/mrhumster/web-server-gin/internal/delivery/http/handler"
@@ -28,6 +29,13 @@ func SetupRoutes(db *gorm.DB, mode string, permissionClient auth.PermissionClien
 
 	// GIN ROUTE
 	r := gin.Default()
+
+	r.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"http://localhost:5173", "https://example.com", "https://api.example.com"},
+		AllowMethods:     []string{"GET", "PATCH", "POST", "OPTIONS", "PUT", "DELETE"},
+		AllowHeaders:     []string{"Content-Type", "Authorization"},
+		AllowCredentials: true,
+	}))
 
 	// CONFIGURATION
 	cfg, _ := config.LoadConfig()
