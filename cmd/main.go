@@ -33,7 +33,7 @@ func main() {
 	logger := slog.New(slog.NewTextHandler(os.Stdout, opts))
 
 	slog.SetDefault(logger)
-	slog.Info("🚀 Start web-server-gin", "version", "1.2.8")
+	slog.Info("🚀 Start web-server-gin", "version", "1.2.13")
 
 	cfg, err := config.LoadConfig()
 	if err != nil {
