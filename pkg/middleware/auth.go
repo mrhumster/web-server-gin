@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"fmt"
+	"log/slog"
 	"net/http"
 	"strings"
 
@@ -53,6 +54,34 @@ func AuthMiddleware(tokenService TokenServiceIFace) gin.HandlerFunc {
 		userUUID, err := uuid.Parse(claims.UserID)
 		if err != nil {
 			c.JSON(http.StatusUnauthorized, dto.ErrorResponse("error parse user id in auth middleware"))
+		}
+		c.Set("user", userUUID)
+		c.Set("claims", claims)
+		c.Next()
+	}
+}
+
+func OptionalAuthMiddleware(TokenService TokenServiceIFace) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.Set("user", uuid.Nil)
+		token := extractToken(c.Request)
+		if token == "" {
+			slog.Debug("The auth token has not been transferred")
+			c.Next()
+			return
+		}
+		claims, err := TokenService.ValidateAccessToken(token)
+		if err != nil {
+			slog.Info("Invalid token claims: ", "error", err.Error())
+			c.Next()
+			return
+		}
+
+		userUUID, err := uuid.Parse(claims.UserID)
+		if err != nil {
+			slog.Error("Error parse User ID", "error", err.Error())
+			c.Next()
+			return
 		}
 		c.Set("user", userUUID)
 		c.Set("claims", claims)

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"log/slog"
 	"net"
 	"net/http"
 	"os"
@@ -24,6 +25,16 @@ import (
 )
 
 func main() {
+	opts := &slog.HandlerOptions{
+		Level:     slog.LevelDebug,
+		AddSource: true,
+	}
+
+	logger := slog.New(slog.NewTextHandler(os.Stdout, opts))
+
+	slog.SetDefault(logger)
+	slog.Info("🚀 Start web-server-gin", "version", "1.2.8")
+
 	cfg, err := config.LoadConfig()
 	if err != nil {
 		panic(fmt.Sprintf("❌ Config: %s", err.Error()))
