@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"log/slog"
 
 	"github.com/mrhumster/web-server-gin/gen/go/permission"
 	"github.com/mrhumster/web-server-gin/internal/service"
@@ -24,11 +25,17 @@ func NewPermissionGRPCServer(p *service.PermissionService) *PermissionGRPCServer
 }
 
 func (s *PermissionGRPCServer) CheckPermission(ctx context.Context, req *permission.CheckPermissionRequest) (*permission.CheckPermissionResponse, error) {
-	log.Printf("⚠️ PermissionGRPCServer: CheckPermission: user_id=%s, resource=%s, action=%s",
-		req.GetUserId(), req.GetResource(), req.GetAction())
-
 	allowed, err := s.permissionServer.CheckPermission(req.GetUserId(), req.GetResource(), req.GetAction())
-	log.Printf("⚠️ allowed=%t", allowed)
+	slog.Info("Check permission: ",
+		"User", req.GetUserId(),
+		"Object", req.GetResource(),
+		"Action", req.GetAction(),
+		"Allowed", allowed)
+	if err != nil {
+		slog.Error("Check prmission: ",
+			"error", err,
+		)
+	}
 	return &permission.CheckPermissionResponse{
 		Allowed: allowed,
 		Error:   fmt.Sprintf("Check permission err %s", err),
@@ -36,10 +43,12 @@ func (s *PermissionGRPCServer) CheckPermission(ctx context.Context, req *permiss
 }
 
 func (s *PermissionGRPCServer) AddPolicy(ctx context.Context, req *permission.AddPolicyRequest) (*permission.AddPolicyResponse, error) {
-	log.Printf("⚠️ PermissionGRPCServer: AddPolicy: policy=%s, resource=%s, permission=%s",
-		req.GetPolicy(), req.GetResorce(), req.GetPermission())
 	added, err := s.permissionServer.AddPolicy(req.GetPolicy(), req.GetResorce(), req.GetPermission())
-	log.Printf("⚠️ added=%t", added)
+	slog.Info("Add policy: ",
+		"Policy", req.GetPolicy(),
+		"Resource", req.GetResorce(),
+		"Permission", req.GetPermission(),
+		"Added", added)
 	return &permission.AddPolicyResponse{
 		Added: added,
 		Error: fmt.Sprintf("Add policy err %s", err),

@@ -7,11 +7,12 @@
 package permission
 
 import (
-	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
-	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
+
+	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
+	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 )
 
 const (
@@ -527,17 +528,19 @@ func file_proto_permission_permission_service_proto_rawDescGZIP() []byte {
 	return file_proto_permission_permission_service_proto_rawDescData
 }
 
-var file_proto_permission_permission_service_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
-var file_proto_permission_permission_service_proto_goTypes = []any{
-	(*CheckPermissionRequest)(nil),       // 0: permission.CheckPermissionRequest
-	(*CheckPermissionResponse)(nil),      // 1: permission.CheckPermissionResponse
-	(*AddPolicyRequest)(nil),             // 2: permission.AddPolicyRequest
-	(*AddPolicyResponse)(nil),            // 3: permission.AddPolicyResponse
-	(*RemovePolicyRequest)(nil),          // 4: permission.RemovePolicyRequest
-	(*RemovePolicyResponse)(nil),         // 5: permission.RemovePolicyResponse
-	(*AddPolicyIfNotExistsRequest)(nil),  // 6: permission.AddPolicyIfNotExistsRequest
-	(*AddPolicyIfNotExistsResponse)(nil), // 7: permission.AddPolicyIfNotExistsResponse
-}
+var (
+	file_proto_permission_permission_service_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
+	file_proto_permission_permission_service_proto_goTypes  = []any{
+		(*CheckPermissionRequest)(nil),       // 0: permission.CheckPermissionRequest
+		(*CheckPermissionResponse)(nil),      // 1: permission.CheckPermissionResponse
+		(*AddPolicyRequest)(nil),             // 2: permission.AddPolicyRequest
+		(*AddPolicyResponse)(nil),            // 3: permission.AddPolicyResponse
+		(*RemovePolicyRequest)(nil),          // 4: permission.RemovePolicyRequest
+		(*RemovePolicyResponse)(nil),         // 5: permission.RemovePolicyResponse
+		(*AddPolicyIfNotExistsRequest)(nil),  // 6: permission.AddPolicyIfNotExistsRequest
+		(*AddPolicyIfNotExistsResponse)(nil), // 7: permission.AddPolicyIfNotExistsResponse
+	}
+)
 var file_proto_permission_permission_service_proto_depIdxs = []int32{
 	0, // 0: permission.PermissionService.CheckPermission:input_type -> permission.CheckPermissionRequest
 	2, // 1: permission.PermissionService.AddPolicy:input_type -> permission.AddPolicyRequest
