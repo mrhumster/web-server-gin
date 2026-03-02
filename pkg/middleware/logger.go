@@ -8,12 +8,19 @@ import (
 )
 
 func StructuredLog() gin.HandlerFunc {
+	skipPath := map[string]struct{}{
+		"/stream/health": {},
+		"/auth/health":   {},
+		"/metrics":       {},
+	}
 	return func(c *gin.Context) {
 		start := time.Now()
 		path := c.Request.URL.Path
 		query := c.Request.URL.RawQuery
 		c.Next()
-
+		if _, ok := skipPath[path]; ok {
+			return
+		}
 		end := time.Now()
 		latency := end.Sub(start)
 		if len(c.Errors) > 0 {
@@ -25,7 +32,7 @@ func StructuredLog() gin.HandlerFunc {
 					"error", e)
 			}
 		} else {
-			slog.Info("HTTP Request Error",
+			slog.Info("HTTP Request",
 				"status", c.Writer.Status(),
 				"method", c.Request.Method,
 				"path", path,
