@@ -33,7 +33,7 @@ func main() {
 	logger := slog.New(slog.NewTextHandler(os.Stdout, opts))
 
 	slog.SetDefault(logger)
-	slog.Info("🚀 Start web-server-gin", "version", "1.2.13")
+	slog.Info("🚀 Start web-server-gin", "version", "1.2.14")
 
 	cfg, err := config.LoadConfig()
 	if err != nil {
@@ -65,7 +65,7 @@ func main() {
 	grpcErr := make(chan error, 1)
 
 	srv := &http.Server{
-		Addr:         cfg.ServerAddr,
+		Addr:         cfg.Server.ServerAddr,
 		Handler:      r,
 		ReadTimeout:  15 * time.Second,
 		WriteTimeout: 15 * time.Second,
@@ -73,8 +73,8 @@ func main() {
 	}
 
 	go func() {
-		log.Printf("🚀 Server starting on %s\n", cfg.ServerAddr)
-		log.Printf("ENV DOMAIN: %s", cfg.Domain)
+		log.Printf("🚀 Server starting on %s\n", cfg.Server.ServerAddr)
+		log.Printf("ENV DOMAIN: %s", cfg.Server.Domain)
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Fatal("🔴 Server error: ", err)
 			httpErr <- err
@@ -100,15 +100,27 @@ func main() {
 			panic("⚠️ Error loading roles config")
 		}
 
-		permissionService := service.NewPermissionService(enforcer)
+		permissionService, err := service.NewPermissionService(enforcer, cfg.Redis)
+		if err != nil {
+			panic("⚠️ Error init permission service")
+		}
+
+		defer func() {
+			log.Println("🟡 Closing Permission Service (Watcher)...")
+			permissionService.Close()
+		}()
+
 		permissionServer := permission.NewPermissionGRPCServer(permissionService)
 		permissionpb.RegisterPermissionServiceServer(grpcServer, permissionServer)
+
 		log.Printf("🛰️ gRPC server listened at %v", lis.Addr())
+
 		if err := grpcServer.Serve(lis); err != nil {
 			log.Fatalf("🔴 Failed to serve: %v", err)
 			grpcErr <- err
 		}
 	}()
+
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit

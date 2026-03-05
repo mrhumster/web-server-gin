@@ -18,6 +18,11 @@ type Database struct {
 	TimeZone string
 }
 
+type Redis struct {
+	Addr     string
+	Password string
+}
+
 type Server struct {
 	ServerAddr      string
 	JwtSecret       string
@@ -36,9 +41,10 @@ type JWT struct {
 	Issuer             string `mapstructure:"jwt_issuer"`
 }
 type Config struct {
-	Database
-	Server `mapstructure:"server"`
-	JWT    `mapstructure:"jwt"`
+	Database `mapstructure:",squash"`
+	Server   Server `mapstructure:"server"`
+	JWT      JWT    `mapstructure:"jwt"`
+	Redis    Redis  `mapstructure:"redis"`
 }
 
 func GetRootDir() string {
@@ -48,7 +54,6 @@ func GetRootDir() string {
 }
 
 func LoadConfig() (*Config, error) {
-
 	accessTokenExpiry, err := time.ParseDuration(getEnv("JWT_ACCESS_TOKEN_EXPIRY", "15m"))
 	if err != nil {
 		return nil, fmt.Errorf("Config error. Plase set ENV JWT_ACCESS_TOKEN_EXPIRY. %v", err)
@@ -83,6 +88,10 @@ func LoadConfig() (*Config, error) {
 			AccessTokenExpiry:  accessTokenExpiry,
 			RefreshTokenExpiry: refreshTokenExpiry,
 			Issuer:             getEnv("JWT_ISSUER", "auth-service"),
+		},
+		Redis: Redis{
+			Addr:     getEnv("REDIS_ADDR", "localhost"),
+			Password: getEnv("REDIS_PASSWORD", ""),
 		},
 	}
 	return cfg, nil

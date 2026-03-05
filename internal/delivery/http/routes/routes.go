@@ -67,7 +67,7 @@ func SetupRoutes(db *gorm.DB, mode string, permissionClient auth.PermissionClien
 
 	// HANDLERS
 	userHandler := handler.NewUserHandler(userService)
-	authHandler := handler.NewAuthHandler(userService, tokenService, cfg.JwtSecret, cfg.Server.Domain)
+	authHandler := handler.NewAuthHandler(userService, tokenService, cfg.Server.JwtSecret, cfg.Server.Domain)
 	commonHandler := handler.NewCommonHandler(tokenService)
 
 	// PERMISSIONS
