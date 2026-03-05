@@ -20,15 +20,6 @@ func Authorize(client auth.PermissionClient, obj, act string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		if c.Request.Method == http.MethodOptions {
 			c.Next()
-<<<<<<< HEAD
-=======
-			return
-		}
-		userID, exists := c.Get("userID")
-		if !exists {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, dto.ErrorResponse("User hasn't logged in yet"))
-			return
->>>>>>> origin/feature/options-in-auth-middleware
 		}
 		userUUID := c.MustGet("user").(uuid.UUID)
 		resourceID := c.Param("id")
