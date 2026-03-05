@@ -62,7 +62,6 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 }
 
 func (h *UserHandler) ReadUser(c *gin.Context) {
-
 	strId := c.Param("id")
 	id, err := uuid.Parse(strId)
 	if err != nil {
@@ -82,7 +81,6 @@ func (h *UserHandler) ReadUser(c *gin.Context) {
 }
 
 func (h *UserHandler) Update(c *gin.Context) {
-
 	strId := c.Param("id")
 	id, err := uuid.Parse(strId)
 	if err != nil {
@@ -111,7 +109,6 @@ func (h *UserHandler) Update(c *gin.Context) {
 }
 
 func (h *UserHandler) Delete(c *gin.Context) {
-
 	strId := c.Param("id")
 	id, err := uuid.Parse(strId)
 	if err != nil {
@@ -168,4 +165,28 @@ func (h *UserHandler) ReadUsers(c *gin.Context) {
 		Page:  page,
 		Limit: limit,
 	})
+}
+
+func (h *UserHandler) GetAuthUser(c *gin.Context) {
+	userID, exist := c.Get("user")
+	if !exist {
+		c.AbortWithStatusJSON(http.StatusUnauthorized, response.ErrorResponse("user not auth"))
+		return
+	}
+
+	userUUID, err := uuid.Parse(userID.(string))
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, response.ErrorResponse("error during parse user id"))
+		return
+	}
+
+	user, err := h.service.ReadUser(c, userUUID)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	var resp response.UserResponse
+	resp.FillInTheModel(user)
+	c.JSON(http.StatusOK, resp)
 }
