@@ -91,7 +91,7 @@ func LoadConfig() (*Config, error) {
 		},
 		Redis: Redis{
 			Addr:     getEnv("REDIS_ADDR", "localhost"),
-			Password: getEnv("REDIS_PASSWORD", ""),
+			Password: getEnv("REDIS_PASS", ""),
 		},
 	}
 	return cfg, nil
