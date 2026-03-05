@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"sync"
 
 	"github.com/casbin/casbin/v2"
@@ -44,9 +45,15 @@ func NewPermissionService(e *casbin.Enforcer, cfg config.Redis) (*PermissionServ
 		return nil, fmt.Errorf("error setting watcher for casbin enforcer: %w", err)
 	}
 	w.SetUpdateCallback(func(msg string) {
+		slog.Info("🔄 Casbin watcher signal received", "msg", msg)
 		ps.mu.Lock()
-		ps.enforcer.LoadPolicy()
+		err := ps.enforcer.LoadPolicy()
 		ps.mu.Unlock()
+		if err != nil {
+			slog.Error("❌ Failed to reload Casbin policies", "error", err)
+		} else {
+			slog.Info("✅ Casbin policies reloaded successfully")
+		}
 	})
 	return ps, nil
 }

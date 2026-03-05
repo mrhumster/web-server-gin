@@ -102,6 +102,7 @@ func main() {
 
 		permissionService, err := service.NewPermissionService(enforcer, cfg.Redis)
 		if err != nil {
+			slog.Error("Error init permission service", "error", err)
 			panic("⚠️ Error init permission service")
 		}
 
