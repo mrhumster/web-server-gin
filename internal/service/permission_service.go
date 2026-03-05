@@ -31,11 +31,14 @@ func NewPermissionService(e *casbin.Enforcer, cfg config.Redis) (*PermissionServ
 	ps := &PermissionService{
 		enforcer: e,
 	}
+
+	opts := redis.Options{
+		Addr:     cfg.Addr,
+		Password: cfg.Password,
+	}
+
 	w, err := rediswatcher.NewWatcher(cfg.Addr, rediswatcher.WatcherOptions{
-		Options: redis.Options{
-			Network:  "tcp",
-			Password: cfg.Password,
-		},
+		Options: opts,
 		Channel: "/casbin",
 	})
 	if err != nil {
