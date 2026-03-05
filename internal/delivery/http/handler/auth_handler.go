@@ -55,11 +55,13 @@ func (a *AuthHandler) Login(c *gin.Context) {
 		)
 	}
 
+	c.SetSameSite(http.SameSiteLaxMode)
+
 	c.SetCookie(
 		"refresh_token",
 		tokenPair.RefreshToken,
 		int(a.TokenService.GetRefreshExpiry().Seconds()),
-		"/auth/refresh",
+		"/",
 		a.Domain,
 		true,
 		true,
@@ -100,14 +102,14 @@ func (a *AuthHandler) Refresh(c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusUnauthorized, response.ErrorResponse("failed to generate token"))
 		return
 	}
-
+	c.SetSameSite(http.SameSiteLaxMode)
 	c.SetCookie(
 		"refresh_token",
 		tokenPair.RefreshToken,
 		int(a.TokenService.GetRefreshExpiry().Seconds()),
-		"/api/refresh",
+		"/",
 		a.Domain,
-		false,
+		true,
 		true,
 	)
 
@@ -121,7 +123,7 @@ func (a *AuthHandler) Refresh(c *gin.Context) {
 }
 
 func (a *AuthHandler) Logout(c *gin.Context) {
-	c.SetCookie("refresh_token", "", -1, "/api/refresh", "", false, true)
+	c.SetCookie("refresh_token", "", -1, "/", a.Domain, true, true)
 	c.JSON(http.StatusOK, response.SuccessResponse("Logged out successfully"))
 }
 
@@ -132,7 +134,7 @@ func (a *AuthHandler) LogoutAll(c *gin.Context) {
 		return
 	}
 
-	c.SetCookie("refresh_token", "", -1, "/api/refresh", "", false, true)
+	c.SetCookie("refresh_token", "", -1, "/", a.Domain, true, true)
 
 	c.JSON(http.StatusOK, response.ErrorResponse("logged out from all devices"))
 }

@@ -46,7 +46,7 @@ func main() {
 		panic(fmt.Sprintf("❌ Permission gRPC client: %s", err.Error()))
 	}
 
-	r := routes.SetupRoutes(db, "debug", permGRPCClient)
+	r := routes.SetupRoutes(db, "release", permGRPCClient)
 
 	defer func() {
 		log.Println("🟡 Closing database pool...")
