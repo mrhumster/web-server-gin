@@ -32,9 +32,13 @@ func NewPermissionService(e *casbin.Enforcer, cfg config.Redis) (*PermissionServ
 		enforcer: e,
 	}
 
+	slog.Info("Redis conn password ", "length", len(cfg.Password))
+
 	opts := redis.Options{
 		Addr:     cfg.Addr,
 		Password: cfg.Password,
+		Protocol: 2,
+		DB:       0,
 	}
 
 	w, err := rediswatcher.NewWatcher(cfg.Addr, rediswatcher.WatcherOptions{
