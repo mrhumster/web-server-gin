@@ -42,4 +42,5 @@ deploy-redis:
 deploy-certmanager:
 	kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.19.4/cert-manager.yaml
 
-
+deploy-ingress-nginx:
+	kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.8.2/deploy/static/provider/cloud/deploy.yaml
