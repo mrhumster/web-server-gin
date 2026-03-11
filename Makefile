@@ -24,7 +24,7 @@ push:
 deploy:
 	@echo "Updating K8s deployment..."
 	kubectl -n $(NAMESPACE) set image deployment/$(DEPLOYMENT) \
-		transcoder-service=$(IMAGE_NAME):$(VERSION)
+		web-server-gin=$(IMAGE_NAME):$(VERSION)
 	@echo "Success!"
 
 test:
@@ -32,4 +32,14 @@ test:
 
 logs:
 	kubectl -n $(NAMESPACE) logs -f -l app=web-server-gin
+
+deploy-postgres:
+	helm -n go-app install postgresql oci://registry-1.docker.io/bitnamicharts/postgresql -f ~/projects/web-server-gin/deploy/k8s/base/values.yaml
+
+deploy-redis:
+	helm install casbin-redis oci://registry-1.docker.io/bitnamicharts/redis --namespace go-app --set architecture=standalone --set auth.enabled=true --set auth.password=password --set master.persistence.enabled=false
+
+deploy-certmanager:
+	kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.19.4/cert-manager.yaml
+
 
